@@ -1,0 +1,163 @@
+<!-- templates/companies/list.html -->
+{% extends 'base.html' %}
+
+{% block title %}企業管理 | InterConnect{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'dashboard' %}" class="flex items-center text-blue-600 hover:text-blue-800">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        ダッシュボードに戻る
+    </a>
+</div>
+
+<div class="flex justify-between items-center mb-8">
+    <h2 class="text-2xl font-bold text-gray-900">企業管理</h2>
+    <a href="{% url 'company_new' %}" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        企業を追加
+    </a>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm">
+    <div class="p-6 border-b border-gray-100">
+        <h3 class="text-xl font-semibold text-gray-900">接続企業</h3>
+        <p class="text-sm text-gray-500">他の企業との接続を管理する</p>
+    </div>
+    
+    <div class="p-6">
+        <div class="flex justify-between mb-6">
+            <div class="relative w-64">
+                <form method="get" action="{% url 'company_list' %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-3 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" name="search" value="{{ search_query }}" placeholder="企業を検索..." class="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </form>
+            </div>
+            <div class="flex space-x-2" hx-boost="true">
+                <a href="{% url 'company_list' %}?status=active" class="px-3 py-1 text-sm font-medium {% if status_filter == 'active' %}bg-blue-600 text-white{% else %}bg-white text-gray-700 border border-gray-300{% endif %} rounded-md">
+                    アクティブ
+                </a>
+                <a href="{% url 'company_list' %}?status=inactive" class="px-3 py-1 text-sm font-medium {% if status_filter == 'inactive' %}bg-blue-600 text-white{% else %}bg-white text-gray-700 border border-gray-300{% endif %} rounded-md">
+                    非アクティブ
+                </a>
+                <a href="{% url 'company_list' %}" class="px-3 py-1 text-sm font-medium {% if status_filter == 'all' or not status_filter %}bg-blue-600 text-white{% else %}bg-white text-gray-700 border border-gray-300{% endif %} rounded-md">
+                    すべて
+                </a>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-gray-200">
+                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">企業</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">業種</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">連絡先</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">アクティブなリクエスト</th>
+<!-- templates/companies/list.html の続き -->
+                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">ステータス</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">最終アクティビティ</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">アクション</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for company in companies %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="px-4 py-4">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium mr-3">
+                                    {{ company.name.0 }}
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ company.name }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-500">{{ company.industry }}</td>
+                        <td class="px-4 py-4 text-sm text-gray-500">
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                {{ company.contact_count }}
+                            </div>
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-500">{{ company.active_request_count }}</td>
+                        <td class="px-4 py-4 text-sm">
+                            {% if company.status == 'active' %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">アクティブ</span>
+                            {% elif company.status == 'inactive' %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">非アクティブ</span>
+                            {% elif company.status == 'pending' %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">保留中</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-500">
+                            {% with activity=company.activities.first %}
+                            {% if activity %}
+                                {{ activity.created_at|timesince }}前
+                            {% else %}
+                                データなし
+                            {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td class="px-4 py-4 text-sm">
+                            <div class="flex space-x-2">
+                                <a href="{% url 'company_detail' company.id %}" class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    表示
+                                </a>
+                                <a href="{% url 'company_edit' company.id %}" class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    編集
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                            接続企業はありません
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm mt-8">
+    <div class="p-6 border-b border-gray-100">
+        <h3 class="text-xl font-semibold text-gray-900">企業招待</h3>
+        <p class="text-sm text-gray-500">新しい企業を招待して組織と接続する</p>
+    </div>
+    
+    <div class="p-6">
+        <form method="post" action="{% url 'company_invite' %}" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label for="company-email" class="block text-sm font-medium text-gray-700 mb-1">企業メール</label>
+                <input type="email" id="company-email" name="email" required placeholder="企業のメールアドレスを入力" class="w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+            <div>
+                <label for="message" class="block text-sm font-medium text-gray-700 mb-1">招待メッセージ</label>
+                <textarea id="message" name="message" placeholder="招待状に個人的なメッセージを追加" class="w-full min-h-[100px] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+            </div>
+            
+            <div class="pt-4">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    招待を送信
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

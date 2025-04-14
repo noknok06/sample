@@ -1,0 +1,191 @@
+<!-- templates/dashboard/index.html -->
+{% extends 'base.html' %}
+
+{% block title %}ダッシュボード | InterConnect{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <h2 class="text-2xl font-bold text-gray-900">ダッシュボード</h2>
+    <a href="{% url 'new_request' %}" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        新規リクエスト
+    </a>
+</div>
+
+<!-- 統計カード -->
+<div class="grid md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg p-6 shadow-sm">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-sm font-medium text-gray-500">リクエスト総数</p>
+                <p class="text-3xl font-bold mt-2">{{ total_requests }}</p>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        </div>
+    </div>
+    <div class="bg-white rounded-lg p-6 shadow-sm">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-sm font-medium text-gray-500">承認待ち</p>
+                <p class="text-3xl font-bold mt-2">{{ pending_count }}</p>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+    </div>
+    <div class="bg-white rounded-lg p-6 shadow-sm">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-sm font-medium text-gray-500">承認済み</p>
+                <p class="text-3xl font-bold mt-2">{{ approved_count }}</p>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+    </div>
+    <div class="bg-white rounded-lg p-6 shadow-sm">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-sm font-medium text-gray-500">接続企業数</p>
+                <p class="text-3xl font-bold mt-2">{{ connected_count }}</p>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+        </div>
+    </div>
+</div>
+
+<!-- リクエスト一覧 -->
+<div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-semibold text-gray-900">リクエスト管理</h3>
+        <div class="flex space-x-2">
+            <div class="relative">
+                <form hx-get="{% url 'dashboard' %}" hx-target="#request-list" hx-trigger="keyup changed delay:500ms">
+                    <input type="text" name="search" placeholder="リクエストを検索..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 absolute left-3 top-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<!-- templates/dashboard/index.html の続き -->
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </form>
+            </div>
+            <button hx-get="{% url 'dashboard' %}?filter=pending" hx-target="#request-list" class="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div x-data="{ tab: 'pending' }">
+        <div class="border-b border-gray-200 mb-4">
+            <nav class="flex -mb-px space-x-6">
+                <button @click="tab = 'pending'" :class="{ 'border-blue-500 text-blue-600': tab === 'pending', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': tab !== 'pending' }" class="py-2 px-1 font-medium text-sm border-b-2">
+                    保留中
+                </button>
+                <button @click="tab = 'approved'" :class="{ 'border-blue-500 text-blue-600': tab === 'approved', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': tab !== 'approved' }" class="py-2 px-1 font-medium text-sm border-b-2">
+                    承認済み
+                </button>
+                <button @click="tab = 'completed'" :class="{ 'border-blue-500 text-blue-600': tab === 'completed', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': tab !== 'completed' }" class="py-2 px-1 font-medium text-sm border-b-2">
+                    完了
+                </button>
+                <button @click="tab = 'all'" :class="{ 'border-blue-500 text-blue-600': tab === 'all', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': tab !== 'all' }" class="py-2 px-1 font-medium text-sm border-b-2">
+                    すべて
+                </button>
+            </nav>
+        </div>
+
+        <div id="request-list">
+            <!-- 各タブのコンテンツ -->
+            <div x-show="tab === 'pending'" class="overflow-x-auto">
+                {% include 'requests/partials/request_table.html' with requests=pending_requests %}
+            </div>
+
+            <div x-show="tab === 'approved'" class="overflow-x-auto">
+                {% include 'requests/partials/request_table.html' with requests=approved_requests %}
+            </div>
+
+            <div x-show="tab === 'completed'" class="overflow-x-auto">
+                {% include 'requests/partials/request_table.html' with requests=completed_requests %}
+            </div>
+
+            <div x-show="tab === 'all'" class="overflow-x-auto" 
+                hx-get="{% url 'request_list' %}" 
+                hx-trigger="load once" 
+                hx-target="this">
+                <div class="flex justify-center py-8">
+                    <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid md:grid-cols-2 gap-8">
+    <!-- 最近のアクティビティ -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="mb-4">
+            <h3 class="text-xl font-semibold text-gray-900">最近のアクティビティ</h3>
+            <p class="text-sm text-gray-500">リクエストに関する最新のアクション</p>
+        </div>
+        <div class="space-y-4">
+            {% for activity in recent_activities %}
+            <div class="border-l-2 border-blue-500 pl-4 py-1">
+                <p class="font-medium text-gray-900">{{ activity.action }}</p>
+                <p class="text-xs text-gray-400 mt-1">{{ activity.created_at|date:"Y年m月d日 H:i" }}</p>
+            </div>
+            {% empty %}
+            <p class="text-gray-500 py-4 text-center">最近のアクティビティはありません</p>
+            {% endfor %}
+        </div>
+        <div class="mt-6">
+            <a href="{% url 'activity_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                すべてのアクティビティを表示
+            </a>
+        </div>
+    </div>
+
+    <!-- 企業接続 -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="mb-4">
+            <h3 class="text-xl font-semibold text-gray-900">企業接続</h3>
+            <p class="text-sm text-gray-500">接続している企業</p>
+        </div>
+        <div class="space-y-4">
+            {% for company in connected_companies|slice:":5" %}
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
+                        {{ company.name.0 }}
+                    </div>
+                    <div class="ml-3">
+                        <p class="font-medium text-gray-900">{{ company.name }}</p>
+                        <p class="text-xs text-gray-500">{{ company.active_request_count }} 件のアクティブなリクエスト</p>
+                    </div>
+                </div>
+                <a href="{% url 'company_detail' company.id %}" class="text-sm text-gray-600 hover:text-gray-900 px-3 py-1 hover:bg-gray-100 rounded-md">
+                    表示
+                </a>
+            </div>
+            {% empty %}
+            <p class="text-gray-500 py-4 text-center">接続企業はありません</p>
+            {% endfor %}
+        </div>
+        <div class="mt-6">
+            <a href="{% url 'company_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                企業を管理
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}                        

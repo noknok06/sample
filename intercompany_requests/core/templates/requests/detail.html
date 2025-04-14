@@ -1,0 +1,425 @@
+<!-- templates/requests/detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ request.title }} | InterConnect{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'dashboard' %}" class="flex items-center text-blue-600 hover:text-blue-800">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        ダッシュボードに戻る
+    </a>
+</div>
+
+<div class="flex flex-col md:flex-row gap-8">
+    <!-- 左側メイン部分 -->
+    <div class="md:w-2/3">
+        <div class="bg-white rounded-lg shadow-sm mb-8">
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-2">
+                            <!-- ステータスバッジ（HTMX対応） -->
+                            <div id="status-badge" hx-get="{% url 'request_status' request.id %}" hx-trigger="load once" hx-swap="outerHTML">
+                                {% include 'requests/partials/status_badge.html' with request=request %}
+                            </div>
+                            
+                            <!-- 優先度バッジ -->
+                            {% if request.priority == 'high' %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">高</span>
+                            {% elif request.priority == 'medium' %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">中</span>
+                            {% else %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">低</span>
+                            {% endif %}
+                            
+                            <span class="text-sm text-gray-500">#{{ request.id }}</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900">{{ request.title }}</h2>
+                        <p class="text-sm text-gray-500 mt-1">
+                            <span class="font-medium">{{ request.sender_company.name }}</span> • 
+                            {{ request.created_at|date:"Y年m月d日" }}に提出
+                        </p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                            </svg>
+                            添付
+                        </button>
+                        <button class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            エクスポート
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6 space-y-6">
+                <!-- 説明 -->
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-2">説明</h3>
+                    <p class="text-gray-900">{{ request.description }}</p>
+                </div>
+
+                <!-- 詳細情報 -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">リクエスト者</h3>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium mr-2">
+                                {{ request.requester.first_name.0|default:request.requester.username.0 }}
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium">{{ request.requester.get_full_name|default:request.requester.username }}</p>
+                                <p class="text-xs text-gray-500">{{ request.requester.role }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">カテゴリ</h3>
+                        <p class="text-sm">{{ request.category }}</p>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">作成日</h3>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <p class="text-sm">{{ request.created_at|date:"Y年m月d日" }}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">期限日</h3>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-sm">{{ request.due_date|date:"Y年m月d日"|default:"設定なし" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 添付ファイル -->
+                {% if request.attachments.exists %}
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-2">添付ファイル</h3>
+                    <div class="space-y-2">
+                        {% for attachment in request.attachments.all %}
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <span class="text-sm font-medium">{{ attachment.name }}</span>
+                                <span class="text-xs text-gray-500 ml-2">({{ attachment.size|filesizeformat }})</span>
+                            </div>
+                            <a href="{{ attachment.file.url }}" download class="text-gray-400 hover:text-gray-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="px-6 py-4 border-t flex justify-between">
+                <button hx-get="{% url 'comment_form' request.id %}" hx-target="#comment-form" hx-swap="innerHTML" class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    コメント追加
+                </button>
+                
+                <!-- アクションボタン（受信企業の担当者のみ表示） -->
+                {% if request.receiver_company == user.company and request.status != 'completed' and request.status != 'rejected' %}
+                <div class="flex space-x-2">
+                    <button hx-get="{% url 'update_request_status' request.id %}?status=rejected" 
+                            hx-target="#status-badge"
+                            class="px-3 py-1 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        却下
+                    </button>
+                    {% if request.status == 'pending' %}
+                    <button hx-get="{% url 'update_request_status' request.id %}?status=reviewed" 
+                            hx-target="#status-badge"
+                            class="px-3 py-1 text-sm font-medium text-amber-600 bg-white border border-amber-300 rounded-md hover:bg-amber-50 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        レビュー中
+                    </button>
+                    {% endif %}
+                    <button hx-get="{% url 'update_request_status' request.id %}?status={% if request.status == 'pending' or request.status == 'reviewed' %}approved{% else %}completed{% endif %}" 
+                            hx-target="#status-badge"
+                            class="px-4 py-1 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {% if request.status == 'pending' or request.status == 'reviewed' %}承認{% else %}完了{% endif %}
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- コメントセクション -->
+        <div class="bg-white rounded-lg shadow-sm">
+            <div class="p-6 border-b border-gray-100">
+                <h3 class="text-xl font-semibold text-gray-900">コメント</h3>
+                <p class="text-sm text-gray-500">リクエスト者や他の関係者とこのリクエストについて議論する</p>
+            </div>
+            
+            <div class="p-6">
+                <!-- コメント一覧 -->
+                <div class="space-y-6">
+                    {% for comment in comments %}
+                    <div class="flex space-x-4">
+                        <div class="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 flex items-center justify-center text-gray-600 font-medium">
+                            {{ comment.user.first_name.0|default:comment.user.username.0 }}
+                        </div>
+                        <div class="flex-1">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <p class="font-medium">{{ comment.user.get_full_name|default:comment.user.username }}</p>
+                                        <p class="text-xs text-gray-500">
+                                            {{ comment.user.company.name }}の{{ comment.user.role|default:"担当者" }}
+                                        </p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">
+                                        {{ comment.created_at|date:"Y年m月d日 H:i" }}
+                                    </p>
+                                </div>
+                                <p class="text-sm">{{ comment.content|linebreaksbr }}</p>
+                            </div>
+                            
+                            <div class="flex items-center mt-2 text-xs text-gray-500">
+                                <button class="flex items-center hover:text-blue-600" hx-post="{% url 'like_comment' comment.id %}" hx-swap="outerHTML" hx-target="this">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                                    </svg>
+                                    いいね
+                                </button>
+                                <span class="mx-2">•</span>
+                                <button class="hover:text-blue-600" hx-get="{% url 'reply_form' comment.id request.id %}" hx-target="#comment-form" hx-swap="innerHTML">
+                                    返信
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+<!-- templates/requests/detail.html の続き -->
+                    {% empty %}
+                    <p class="text-gray-500 py-4 text-center">まだコメントがありません。最初のコメントを追加しましょう。</p>
+                    {% endfor %}
+                </div>
+
+                <!-- コメント入力フォーム -->
+                <div id="comment-form" class="mt-6">
+                    <form method="post" action="{% url 'add_comment' request.id %}" hx-post="{% url 'add_comment' request.id %}" hx-target="#comment-list" hx-swap="beforeend">
+                        {% csrf_token %}
+                        <textarea name="content" placeholder="コメントを追加..." class="w-full min-h-[100px] p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                        <div class="flex justify-between mt-2">
+                            <button type="button" class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                </svg>
+                                添付
+                            </button>
+                            <button type="submit" class="px-4 py-1 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                </svg>
+                                送信
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右側サイドバー -->
+    <div class="md:w-1/3">
+        <!-- リクエストステータス -->
+        <div class="bg-white rounded-lg shadow-sm mb-6">
+            <div class="p-6 border-b border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900">リクエストステータス</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-medium">提出済み</p>
+                            <p class="text-xs text-gray-500">{{ request.created_at|date:"Y年m月d日 H:i" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full 
+                            {% if request.status != 'pending' %} 
+                              bg-green-100 text-green-600 
+                            {% else %} 
+                              bg-gray-100 text-gray-400 
+                            {% endif %} 
+                            flex items-center justify-center mr-3">
+                            {% if request.status != 'pending' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            {% else %}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="font-medium">受領済み</p>
+                            {% if request.status != 'pending' %}
+                            <p class="text-xs text-gray-500">
+                                {% with activity=activities|first %}
+                                    {% if activity %}
+                                        {{ activity.created_at|date:"Y年m月d日 H:i" }}
+                                    {% else %}
+                                        状態更新日時不明
+                                    {% endif %}
+                                {% endwith %}
+                            </p>
+                            {% else %}
+                            <p class="text-xs text-gray-500">進行中</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full 
+                            {% if request.status == 'reviewed' %} 
+                              bg-amber-100 text-amber-600 
+                            {% elif request.status == 'approved' or request.status == 'completed' %}
+                              bg-green-100 text-green-600
+                            {% else %} 
+                              bg-gray-100 text-gray-400 
+                            {% endif %} 
+                            flex items-center justify-center mr-3">
+                            {% if request.status == 'reviewed' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {% elif request.status == 'approved' or request.status == 'completed' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            {% else %}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="font-medium">レビュー中</p>
+                            {% if request.status == 'reviewed' %}
+                            <p class="text-xs text-gray-500">進行中</p>
+                            {% elif request.status == 'approved' or request.status == 'completed' %}
+                            <p class="text-xs text-gray-500">完了</p>
+                            {% else %}
+                            <p class="text-xs text-gray-500">保留中</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full 
+                            {% if request.status == 'approved' or request.status == 'completed' %} 
+                              bg-green-100 text-green-600 
+                            {% else %} 
+                              bg-gray-100 text-gray-400 
+                            {% endif %} 
+                            flex items-center justify-center mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-medium">承認済み</p>
+                            {% if request.status == 'approved' or request.status == 'completed' %}
+                            <p class="text-xs text-gray-500">
+                                {% for activity in activities %}
+                                    {% if 'ステータスを「承認済み」に変更' in activity.action %}
+                                        {{ activity.created_at|date:"Y年m月d日 H:i" }}
+                                    {% endif %}
+                                {% endfor %}
+                            </p>
+                            {% else %}
+                            <p class="text-xs text-gray-500">保留中</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full 
+                            {% if request.status == 'completed' %} 
+                              bg-green-100 text-green-600 
+                            {% else %} 
+                              bg-gray-100 text-gray-400 
+                            {% endif %} 
+                            flex items-center justify-center mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-medium">完了</p>
+                            {% if request.status == 'completed' %}
+                            <p class="text-xs text-gray-500">
+                                {% for activity in activities %}
+                                    {% if 'ステータスを「完了」に変更' in activity.action %}
+                                        {{ activity.created_at|date:"Y年m月d日 H:i" }}
+                                    {% endif %}
+                                {% endfor %}
+                            </p>
+                            {% else %}
+                            <p class="text-xs text-gray-500">保留中</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 活動履歴 -->
+        <div class="bg-white rounded-lg shadow-sm">
+            <div class="p-6 border-b border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900">活動履歴</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    {% for activity in activities %}
+                    <div class="border-l-2 border-blue-500 pl-4 py-1">
+                        <p class="font-medium text-gray-900">{{ activity.action }}</p>
+                        <p class="text-xs text-gray-500">{{ activity.user.get_full_name|default:activity.user.username }}による</p>
+                        <p class="text-xs text-gray-400">{{ activity.created_at|date:"Y年m月d日 H:i" }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 py-4 text-center">活動履歴はありません</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}                    
