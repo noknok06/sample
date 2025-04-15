@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}活動履歴 | InterConnect{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'dashboard' %}" class="flex items-center text-blue-600 hover:text-blue-800">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        ダッシュボードに戻る
+    </a>
+</div>
+
+<div class="mb-8">
+    <h2 class="text-2xl font-bold text-gray-900">活動履歴</h2>
+    <p class="text-gray-500">あなたの企業に関連するすべての活動履歴を表示しています</p>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm">
+    <div class="p-6 border-b border-gray-100">
+        <form method="get" action="{% url 'activity_list' %}" class="flex flex-col md:flex-row md:items-end md:justify-between space-y-4 md:space-y-0 md:space-x-4">
+            <div class="flex-1 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                <div class="w-full md:w-64">
+                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">キーワード検索</label>
+                    <div class="relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-3 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input type="text" id="search" name="search" value="{{ search_query }}" placeholder="アクションで検索" class="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+                
+                <div class="w-full md:w-48">
+                    <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">開始日</label>
+                    <input type="date" id="date_from" name="date_from" value="{{ date_from }}" class="w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                
+                <div class="w-full md:w-48">
+                    <label for="date_to" class="block text-sm font-medium text-gray-700 mb-1">終了日</label>
+                    <input type="date" id="date_to" name="date_to" value="{{ date_to }}" class="w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                
+                <div class="w-full md:w-48">
+                    <label for="user" class="block text-sm font-medium text-gray-700 mb-1">ユーザー</label>
+                    <select id="user" name="user" class="w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="all" {% if user_filter == 'all' or not user_filter %}selected{% endif %}>すべて</option>
+                        {% for u in users %}
+                            <option value="{{ u.id }}" {% if user_filter == u.id|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    フィルタ適用
+                </button>
+                <a href="{% url 'activity_list' %}" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+                    リセット
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <div class="divide-y divide-gray-100">
+        {% for activity in activities %}
+        <div class="p-6 hover:bg-gray-50">
+            <div class="flex items-start">
+                <div class="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 flex items-center justify-center text-gray-600 font-medium">
+                    {{ activity.user.first_name.0|default:activity.user.username.0 }}
+                </div>
+                <div class="ml-4 flex-1">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-medium text-gray-900">{{ activity.user.get_full_name|default:activity.user.username }}</p>
+                            <p class="text-xs text-gray-500">{{ activity.user.company.name }}の{{ activity.user.role|default:"担当者" }}</p>
+                        </div>
+                        <p class="text-sm text-gray-500">{{ activity.created_at|date:"Y年m月d日 H:i" }}</p>
+                    </div>
+                    <p class="mt-2 text-gray-900">{{ activity.action }}</p>
+                    <div class="mt-2">
+                        <a href="{% url 'request_detail' activity.request.id %}" class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {{ activity.request.title }} (#{{ activity.request.id }})
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="p-8 text-center text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>活動履歴はありません</p>
+            <p class="text-sm mt-2">フィルタ条件を変更するか、しばらく経ってからもう一度確認してください</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if activities.has_other_pages %}
+    <div class="p-6 border-t border-gray-100 flex justify-center">
+        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            {% if activities.has_previous %}
+            <a href="?page={{ activities.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">前へ</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </a>
+            {% endif %}
+            
+            {% for i in activities.paginator.page_range %}
+                {% if activities.number == i %}
+                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                    {{ i }}
+                </span>
+                {% elif i > activities.number|add:'-3' and i < activities.number|add:'3' %}
+                <a href="?page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ i }}
+                </a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if activities.has_next %}
+            <a href="?page={{ activities.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">次へ</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 日付入力フィールドの初期化
+        const dateFrom = document.getElementById('date_from');
+        const dateTo = document.getElementById('date_to');
+        
+        // 日付の変更イベントリスナー
+        dateFrom.addEventListener('change', function() {
+            // 終了日が開始日より前の場合、終了日を開始日に設定
+            if (dateTo.value && dateFrom.value > dateTo.value) {
+                dateTo.value = dateFrom.value;
+            }
+        });
+        
+        dateTo.addEventListener('change', function() {
+            // 開始日が終了日より後の場合、開始日を終了日に設定
+            if (dateFrom.value && dateTo.value < dateFrom.value) {
+                dateFrom.value = dateTo.value;
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

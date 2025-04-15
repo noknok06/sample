@@ -21,7 +21,7 @@
         <a href="{% url 'company_edit' company.id %}" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
             編集
         </a>
-        <button hx-get="{% url 'new_request_with_company' company.id %}" hx-target="#modal-container" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center">
+        <button hx-get="{% url 'new_request' %}?company_id={{ company.id }}" hx-target="#modal-container" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>

@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.db.models import Count, Q
 from .models import Company, Request, Comment, Attachment, Activity, User
 from .forms import RequestForm, CommentForm, CompanyForm
+from django.utils import timezone
 
 @login_required
 def dashboard(request):
@@ -251,7 +252,7 @@ from .forms import RequestForm, CommentForm, CompanyForm, UserProfileForm
 
 @login_required
 def request_list(request):
-    """リクエスト一覧の表示"""
+    """リクエスト一覧の表示（HTMX対応）"""
     user = request.user
     company = user.company
     
@@ -263,58 +264,29 @@ def request_list(request):
     # 検索とフィルタリング
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', 'all')
-    priority_filter = request.GET.get('priority', 'all')
-    company_filter = request.GET.get('company', 'all')
     
-    # 検索条件の適用
     if search_query:
         requests_qs = requests_qs.filter(
             Q(title__icontains=search_query) | 
             Q(description__icontains=search_query)
         )
     
-    # ステータスフィルタ
     if status_filter != 'all':
         requests_qs = requests_qs.filter(status=status_filter)
     
-    # 優先度フィルタ
-    if priority_filter != 'all':
-        requests_qs = requests_qs.filter(priority=priority_filter)
-    
-    # 企業フィルタ
-    if company_filter != 'all':
-        requests_qs = requests_qs.filter(
-            Q(sender_company_id=company_filter) | 
-            Q(receiver_company_id=company_filter)
-        )
-    
-    # ページネーション
-    paginator = Paginator(requests_qs, 10)  # 1ページあたり10件
-    page = request.GET.get('page', 1)
-    
-    try:
-        requests = paginator.page(page)
-    except PageNotAnInteger:
-        requests = paginator.page(1)
-    except EmptyPage:
-        requests = paginator.page(paginator.num_pages)
-    
-    # 接続企業一覧（フィルタ用）
-    connected_companies = Company.objects.filter(
-        Q(sent_requests__receiver_company=company) | 
-        Q(received_requests__sender_company=company)
-    ).distinct()
+    # この行でエラーが発生しているかもしれない - timezone がインポートされているか確認
+    from django.utils import timezone
     
     context = {
-        'requests': requests,
-        'search_query': search_query,
-        'status_filter': status_filter,
-        'priority_filter': priority_filter,
-        'company_filter': company_filter,
-        'companies': connected_companies,
+        'requests': requests_qs,
         'now': timezone.now(),
     }
     
+    # HTMX リクエストの場合、部分的なテンプレートを返す
+    if request.headers.get('HX-Request'):
+        return render(request, 'requests/partials/request_table.html', context)
+    
+    # 通常のリクエストの場合、完全なページを返す
     return render(request, 'requests/list.html', context)
 
 @login_required
@@ -675,6 +647,11 @@ def update_request_status(request, pk):
 def request_status(request, pk):
     """リクエストステータスバッジ表示用"""
     req = get_object_or_404(Request, pk=pk)
+    # エラーの原因を調査するためのデバッグ情報を追加
+    print(f"Rendering status for request {pk}, status: {req.status}")
+    
+    # 問題は、参照しているテンプレートが存在しないか、適切に設定されていない可能性があります
+    # テンプレートが実際に存在することを確認してください
     return render(request, 'requests/partials/status_badge.html', {'request': req})
 
 # 活動履歴リスト

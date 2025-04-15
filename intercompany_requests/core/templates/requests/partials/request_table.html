@@ -24,7 +24,7 @@
                 {% endif %}
             </td>
             <td class="px-4 py-4 text-sm" hx-get="{% url 'request_status' request.id %}" hx-trigger="load once" hx-swap="outerHTML">
-                {% comment %} {% include 'requests/partials/status_badge.html' with request=request %} {% endcomment %}
+                {% include 'requests/partials/status_badge.html' with request=request %}
             </td>
             <td class="px-4 py-4 text-sm text-gray-500">{{ request.created_at|date:"Y-m-d" }}</td>
             <td class="px-4 py-4 text-sm">

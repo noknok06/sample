@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block title %}プロフィール | InterConnect{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'dashboard' %}" class="flex items-center text-blue-600 hover:text-blue-800">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        ダッシュボードに戻る
+    </a>
+</div>
+
+<div class="max-w-3xl mx-auto">
+    <!-- プロフィール情報 -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">プロフィール情報</h2>
+            <div class="mt-4 sm:mt-0">
+                <button type="button" id="edit-profile-btn" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    編集
+                </button>
+            </div>
+        </div>
+        
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+            <div class="p-4 mb-4 {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %} rounded-md">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- プロフィール表示モード -->
+        <div id="profile-view" class="space-y-6">
+            <div class="flex items-center">
+                <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-2xl font-semibold">
+                    {{ user.first_name.0|default:user.username.0 }}
+                </div>
+                <div class="ml-6">
+                    <h3 class="text-lg font-medium text-gray-900">{{ user.get_full_name|default:user.username }}</h3>
+                    <p class="text-sm text-gray-500">{{ user.role|default:"役職未設定" }}</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 mb-1">ユーザー名</p>
+                    <p class="text-base">{{ user.username }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500 mb-1">メールアドレス</p>
+                    <p class="text-base">{{ user.email }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500 mb-1">名</p>
+                    <p class="text-base">{{ user.first_name|default:"未設定" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500 mb-1">姓</p>
+                    <p class="text-base">{{ user.last_name|default:"未設定" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500 mb-1">企業</p>
+                    <p class="text-base">{{ user.company.name|default:"未設定" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500 mb-1">役職</p>
+                    <p class="text-base">{{ user.role|default:"未設定" }}</p>
+                </div>
+            </div>
+            
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">登録日</p>
+                <p class="text-base">{{ user.date_joined|date:"Y年m月d日" }}</p>
+            </div>
+        </div>
+        
+        <!-- プロフィール編集モード -->
+        <div id="profile-edit" class="hidden">
+            <form method="post" action="{% url 'profile' %}" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">名</label>
+                        <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" class="w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        {% if form.first_name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">姓</label>
+                        <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" class="w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        {% if form.last_name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+                        <input type="email" id="email" name="email" value="{{ user.email }}" class="w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        {% if form.email.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="role" class="block text-sm font-medium text-gray-700 mb-1">役職</label>
+                        <input type="text" id="role" name="role" value="{{ user.role }}" class="w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        {% if form.role.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.role.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="cancel-edit-btn" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+                        キャンセル
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        変更を保存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 企業情報 -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">企業情報</h2>
+            <div class="mt-4 sm:mt-0">
+                <a href="{% url 'company_edit' user.company.id %}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    編集
+                </a>
+            </div>
+        </div>
+        
+        <div class="space-y-6">
+            <div class="flex items-center">
+                <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-2xl font-semibold">
+                    {{ user.company.name.0 }}
+                </div>
+                <div class="ml-6">
+                    <h3 class="text-lg font-medium text-gray-900">{{ user.company.name }}</h3>
+                    <p class="text-sm text-gray-500">{{ user.company.industry }}</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 mb-1">メールアドレス</p>
+                    <p class="text-base">{{ user.company.email }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500 mb-1">電話番号</p>
+                    <p class="text-base">{{ user.company.phone|default:"未設定" }}</p>
+                </div>
+            </div>
+            
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">住所</p>
+                <p class="text-base">{{ user.company.address|default:"未設定" }}</p>
+            </div>
+            
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">ステータス</p>
+                <div>
+                    {% if user.company.status == 'active' %}
+                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">アクティブ</span>
+                    {% elif user.company.status == 'inactive' %}
+                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">非アクティブ</span>
+                    {% elif user.company.status == 'pending' %}
+                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">保留中</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- アクティビティ -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">最近のアクティビティ</h2>
+        
+        <div class="space-y-4">
+            {% for activity in recent_activities %}
+            <div class="border-l-2 border-blue-500 pl-4 py-1">
+                <p class="font-medium text-gray-900">{{ activity.action }}</p>
+                <p class="text-xs text-gray-400 mt-1">{{ activity.created_at|date:"Y年m月d日 H:i" }}</p>
+            </div>
+            {% empty %}
+            <p class="text-gray-500 py-4 text-center">最近のアクティビティはありません</p>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-6">
+            <a href="{% url 'activity_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                すべてのアクティビティを表示
+            </a>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // プロフィール編集UIのトグル
+    document.addEventListener('DOMContentLoaded', function() {
+        const viewMode = document.getElementById('profile-view');
+        const editMode = document.getElementById('profile-edit');
+        const editBtn = document.getElementById('edit-profile-btn');
+        const cancelBtn = document.getElementById('cancel-edit-btn');
+        
+        editBtn.addEventListener('click', function() {
+            viewMode.classList.add('hidden');
+            editMode.classList.remove('hidden');
+        });
+        
+        cancelBtn.addEventListener('click', function() {
+            editMode.classList.add('hidden');
+            viewMode.classList.remove('hidden');
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}
