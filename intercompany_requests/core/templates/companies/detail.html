@@ -132,14 +132,16 @@
                                 <div class="flex items-center mt-1 space-x-2">
                                     {% if request.status == 'pending' %}
                                     <span class="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">保留中</span>
+                                    {% elif request.status == 'reviewed' %}
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">レビュー中</span>
                                     {% elif request.status == 'approved' %}
                                     <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">承認済み</span>
                                     {% elif request.status == 'completed' %}
                                     <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">完了</span>
                                     {% elif request.status == 'rejected' %}
                                     <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">却下</span>
-                                    {% elif request.status == 'reviewed' %}
-                                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">レビュー中</span>
+                                    {% else %}
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">不明</span>
                                     {% endif %}
                                     
                                     {% if request.priority == 'high' %}

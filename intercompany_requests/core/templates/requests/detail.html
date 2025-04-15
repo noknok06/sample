@@ -23,7 +23,7 @@
                         <div class="flex items-center space-x-2 mb-2">
                             <!-- ステータスバッジ（HTMX対応） -->
                             <div id="status-badge" hx-get="{% url 'request_status' request.id %}" hx-trigger="load once" hx-swap="outerHTML">
-                                {% include 'requests/partials/status_badge.html' with request=request %}
+                                {% comment %} {% include 'requests/partials/status_badge.html' with request=request %} {% endcomment %}
                             </div>
                             
                             <!-- 優先度バッジ -->

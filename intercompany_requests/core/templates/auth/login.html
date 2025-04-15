@@ -84,9 +84,9 @@
 <div class="mt-8 text-center">
     <p class="text-sm text-gray-500">
         InterConnectを使用することで、
-        <a href="{% url 'terms' %}" class="text-blue-600 hover:underline">利用規約</a>
+        {% comment %} <a href="{% url 'terms' %}" class="text-blue-600 hover:underline">利用規約</a> {% endcomment %}
         および
-        <a href="{% url 'privacy' %}" class="text-blue-600 hover:underline">プライバシーポリシー</a>
+        {% comment %} <a href="{% url 'privacy' %}" class="text-blue-600 hover:underline">プライバシーポリシー</a> {% endcomment %}
         に同意したことになります。
     </p>
 </div>

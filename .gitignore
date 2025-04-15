@@ -1,0 +1,7 @@
+intercompany_requests_/core/__pycache__/
+intercompany_requests_/core/migrations/
+intercompany_requests_/venv/
+intercompany_requests/venv/
+intercompany_requests/core/__pycache__/
+*.pyc
+intercompany_requests/core/migrations/
