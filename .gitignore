@@ -5,3 +5,12 @@ intercompany_requests/venv/
 intercompany_requests/core/__pycache__/
 *.pyc
 intercompany_requests/core/migrations/
+*/venv/
+intercompany_requests2/notifications/migrations/__init__.py
+intercompany_requests2/accounts/migrations/0001_initial.py
+intercompany_requests2/accounts/migrations/
+intercompany_requests2/companies/migrations/
+intercompany_requests2/core/migrations/
+intercompany_requests2/dashboard/migrations/
+intercompany_requests2/notifications/
+intercompany_requests2/reqs/migrations/

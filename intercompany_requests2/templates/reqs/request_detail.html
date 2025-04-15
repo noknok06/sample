@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ request_obj.title }} | InterConnect{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <!-- Back button -->
+  <div>
+    <a href="{% url 'reqs:list' %}" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+      <svg class="-ml-1 mr-1 h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+      </svg>
+      {% trans "リクエスト一覧に戻る" %}
+    </a>
+  </div>
+
+  <!-- Request header -->
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-start">
+      <div>
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          {{ request_obj.title }}
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+          {% trans "ID" %}: {{ request_obj.id }} | 
+          {% trans "作成" %}: {{ request_obj.created_at|date:"Y/m/d H:i" }}
+        </p>
+      </div>
+      <div>
+        {% if request_obj.status == 'draft' or request_obj.status == 'pending' %}
+          {% if request_obj.creator == user or user.is_admin %}
+            <a href="{% url 'reqs:edit' request_obj.pk %}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              {% trans "編集" %}
+            </a>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+    <div class="border-t border-gray-200">
+      <dl>
+        <div class="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "ステータス" %}
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {% if request_obj.status == 'draft' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                {% trans "下書き" %}
+              </span>
+            {% elif request_obj.status == 'pending' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
+                {% trans "保留中" %}
+              </span>
+            {% elif request_obj.status == 'review' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                {% trans "レビュー中" %}
+              </span>
+            {% elif request_obj.status == 'approved' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                {% trans "承認済み" %}
+              </span>
+            {% elif request_obj.status == 'rejected' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800">
+                {% trans "却下" %}
+              </span>
+            {% elif request_obj.status == 'completed' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-purple-100 text-purple-800">
+                {% trans "完了" %}
+              </span>
+            {% elif request_obj.status == 'cancelled' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                {% trans "キャンセル" %}
+              </span>
+            {% endif %}
+          </dd>
+        </div>
+        <div class="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "作成者" %}
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {{ request_obj.creator.get_full_name|default:request_obj.creator.email }} ({{ request_obj.company_from.name }})
+          </dd>
+        </div>
+        <div class="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "宛先企業" %}
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {{ request_obj.company_to.name }}
+          </dd>
+        </div>
+        <div class="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "カテゴリ" %}
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {{ request_obj.get_category_display }}
+          </dd>
+        </div>
+        <div class="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "優先度" %}
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {% if request_obj.priority == 'urgent' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800">
+                {% trans "緊急" %}
+              </span>
+            {% elif request_obj.priority == 'high' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-orange-100 text-orange-800">
+                {% trans "高" %}
+              </span>
+            {% elif request_obj.priority == 'medium' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
+                {% trans "中" %}
+              </span>
+            {% elif request_obj.priority == 'low' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                {% trans "低" %}
+              </span>
+            {% endif %}
+          </dd>
+        </div>
+        <div class="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "期限" %}
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {% if request_obj.deadline %}
+              {{ request_obj.deadline|date:"Y/m/d" }}
+            {% else %}
+              {% trans "期限なし" %}
+            {% endif %}
+          </dd>
+        </div>
+        <div class="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "担当者" %}
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {% if request_obj.assigned_to %}
+              {{ request_obj.assigned_to.get_full_name|default:request_obj.assigned_to.email }}
+            {% else %}
+              {% trans "未割り当て" %}
+            {% endif %}
+          </dd>
+        </div>
+        <div class="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "説明" %}
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 whitespace-pre-line">
+            {{ request_obj.description }}
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <!-- Approval workflow -->
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">
+        {% trans "承認ワークフロー" %}
+      </h3>
+      <p class="mt-1 max-w-2xl text-sm text-gray-500">
+        {% trans "このリクエストの承認プロセスです。" %}
+      </p>
+    </div>
+    <div class="border-t border-gray-200">
+      {% if approvals %}
+        <ul class="divide-y divide-gray-200">
+          {% for approval in approvals %}
+            <li class="px-4 py-4 sm:px-6">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 
+                      {% if approval.status == 'approved' %}text-green-500{% elif approval.status == 'rejected' %}text-red-500{% else %}text-gray-400{% endif %}" 
+                      xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      {% if approval.status == 'approved' %}
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                      {% elif approval.status == 'rejected' %}
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                      {% else %}
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd" />
+                      {% endif %}
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-900">
+                      {{ approval.approver.get_full_name|default:approval.approver.email }}
+                      {% if approval.approver == user %}
+                        <span class="ml-1 inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-indigo-100 text-indigo-800">
+                          {% trans "あなた" %}
+                        </span>
+                      {% endif %}
+                    </p>
+                    <p class="text-sm text-gray-500">
+                      {{ approval.approver.position|default:"" }} {{ approval.approver.company.name }}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  {% if approval.status == 'approved' %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                      {% trans "承認済み" %}
+                    </span>
+                  {% elif approval.status == 'rejected' %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800">
+                      {% trans "却下" %}
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
+                      {% trans "保留中" %}
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+              {% if approval.comment %}
+                <div class="mt-2 ml-8 text-sm text-gray-700 whitespace-pre-line">
+                  {{ approval.comment }}
+                </div>
+              {% endif %}
+              {% if approval.approved_at %}
+                <div class="mt-1 ml-8 text-xs text-gray-500">
+                  {{ approval.approved_at|date:"Y/m/d H:i" }}
+                </div>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="px-4 py-5 sm:px-6 text-center text-gray-500">
+          {% trans "このリクエストには承認者が設定されていません。" %}
+        </div>
+      {% endif %}
+
+      {% if needs_approval %}
+        <div class="px-4 py-4 sm:px-6 bg-yellow-50 border-t border-yellow-200">
+          <div class="text-sm text-yellow-800">
+            <p class="font-medium mb-2">{% trans "承認処理" %}</p>
+            <p class="mb-4">{% trans "このリクエストはあなたの承認待ちです。" %}</p>
+            <form method="POST" class="space-y-4">
+              {% csrf_token %}
+              {{ approval_form|crispy }}
+              <div class="flex justify-end space-x-3">
+                <button type="submit" name="status" value="rejected" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                  {% trans "却下" %}
+                </button>
+                <button type="submit" name="status" value="approved" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                  {% trans "承認" %}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Comments section -->
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">
+        {% trans "コメント" %}
+      </h3>
+      <p class="mt-1 max-w-2xl text-sm text-gray-500">
+        {% trans "このリクエストに関する会話" %}
+      </p>
+    </div>
+    
+    <div class="border-t border-gray-200 p-4">
+      <!-- Comment Form -->
+      <form method="POST" action="{% url 'comments:add' request_obj.id %}" class="mb-6"
+            hx-post="{% url 'comments:add' request_obj.id %}"
+            hx-target="#comments-list"
+            hx-swap="afterbegin">
+        {% csrf_token %}
+        <div class="flex space-x-3">
+          <div class="flex-shrink-0">
+            <img class="h-10 w-10 rounded-full object-cover"
+                 src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=6366F1&color=fff{% endif %}"
+                 alt="{{ user.get_full_name|default:user.email }}">
+          </div>
+          <div class="min-w-0 flex-1">
+            <div>
+              <textarea name="content" id="comment-content" rows="3" class="shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border border-gray-300 rounded-md" placeholder="{% trans 'コメントを入力してください' %}"></textarea>
+            </div>
+            <div class="mt-3 flex justify-end">
+              <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                {% trans "コメント投稿" %}
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+      
+      <!-- Comments List -->
+      <div id="comments-list" class="space-y-4">
+        {% for comment in request_obj.comments.all %}
+          {% include "comments/partials/comment_item.html" with comment=comment request_obj=request_obj %}
+        {% empty %}
+          <div class="text-center py-6 text-gray-500">
+            {% trans "まだコメントはありません。" %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Attachments -->
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+      <div>
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          {% trans "添付ファイル" %}
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+          {% trans "リクエストに関連するファイル" %}
+        </p>
+      </div>
+      <div>
+        <button type="button" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                onClick="document.getElementById('file-upload-form').classList.toggle('hidden')">
+          {% trans "ファイル追加" %}
+        </button>
+      </div>
+    </div>
+    
+    <!-- File upload form -->
+    <div id="file-upload-form" class="hidden px-4 py-3 bg-gray-50 border-t border-b border-gray-200">
+      <form method="POST" action="{% url 'reqs:add_attachment' request_obj.pk %}" enctype="multipart/form-data" class="space-y-3"
+            hx-post="{% url 'reqs:add_attachment' request_obj.pk %}" 
+            hx-target="#attachments-list" 
+            hx-swap="beforeend">
+        {% csrf_token %}
+        <div class="flex items-center">
+          <input type="file" name="file" id="id_file" class="flex-grow py-1.5" required>
+          <button type="submit" class="ml-3 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            {% trans "アップロード" %}
+          </button>
+        </div>
+      </form>
+    </div>
+    
+    <div class="border-t border-gray-200">
+      <ul id="attachments-list" class="divide-y divide-gray-200">
+        {% if attachments %}
+          {% for attachment in attachments %}
+            {% include "reqs/partials/attachment_item.html" with attachment=attachment request_obj=request_obj %}
+          {% endfor %}
+        {% else %}
+          <li class="px-4 py-5 sm:px-6 text-center text-gray-500">
+            {% trans "添付ファイルはありません。" %}
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Hide the upload form when a file is successfully uploaded
+  document.body.addEventListener('htmx:afterRequest', function(evt) {
+    if (evt.detail.successful && evt.detail.elt.matches('form[hx-post*="add_attachment"]')) {
+      document.getElementById('file-upload-form').classList.add('hidden');
+      evt.detail.elt.reset();
+    }
+    
+    // コメント投稿後にテキストエリアをクリア
+    if (evt.detail.successful && evt.detail.elt.matches('form[hx-post*="comments/add"]')) {
+      evt.detail.elt.reset();
+    }
+  });
+</script>
+{% endblock %}

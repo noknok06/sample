@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Join Company" %} | InterConnect{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">
+        {% trans "企業に参加" %}
+      </h3>
+      <p class="mt-1 max-w-2xl text-sm text-gray-500">
+        {% trans "企業の招待コードを入力して参加します。" %}
+      </p>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+      <form method="POST" class="space-y-6">
+        {% csrf_token %}
+        
+        {{ form|crispy }}
+        
+        <div class="flex justify-end">
+          <a href="{% url 'dashboard:home' %}" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            {% trans "キャンセル" %}
+          </a>
+          <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            {% trans "参加" %}
+          </button>
+        </div>
+      </form>
+      
+      {% if is_development %}
+      <div class="mt-8 pt-6 border-t border-gray-200">
+        <h4 class="text-md font-medium text-gray-900 mb-2">{% trans "開発モード" %}</h4>
+        <p class="text-sm text-gray-500 mb-4">{% trans "開発環境では、デモ企業に自動的に参加できます。" %}</p>
+        
+        <form method="POST" class="space-y-3">
+          {% csrf_token %}
+          <input type="hidden" name="join_demo" value="1">
+          <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            {% trans "デモ企業に参加" %}
+          </button>
+        </form>
+      </div>
+      {% endif %}
+      
+      {% if is_development %}
+      <div class="mt-8 pt-6 border-t border-gray-200">
+        <h4 class="text-md font-medium text-gray-900 mb-2">{% trans "企業を新規作成" %}</h4>
+        <p class="text-sm text-gray-500 mb-4">{% trans "または新しい企業を作成することもできます。" %}</p>
+        
+        <a href="{% url 'companies:create' %}" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          {% trans "新しい企業を作成" %}
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

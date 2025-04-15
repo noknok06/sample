@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Activities" %} | InterConnect{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <!-- Page header -->
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-900">{% trans "活動履歴" %}</h1>
+    <a href="{% url 'dashboard:home' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+      {% trans "ダッシュボードに戻る" %}
+    </a>
+  </div>
+
+  <!-- Activity Feed -->
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">{% trans "最近の活動" %}</h3>
+      <p class="mt-1 max-w-2xl text-sm text-gray-500">{% trans "リクエスト、コメント、承認に関する最近の活動" %}</p>
+    </div>
+    
+    <div class="overflow-hidden">
+      <!-- Timeline -->
+      <div class="flow-root px-4 py-5 sm:px-6">
+        <ul role="list" class="-mb-8">
+          <!-- Request Activities -->
+          {% for req in recent_requests %}
+            <li>
+              <div class="relative pb-8">
+                {% if not forloop.last %}
+                <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                {% endif %}
+                <div class="relative flex items-start space-x-3">
+                  <div class="relative">
+                    <div class="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center ring-8 ring-white">
+                      <svg class="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm6 6H7v2h6v-2z" clip-rule="evenodd" />
+                        <path d="M7 15h6v2H7v-2z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div>
+                      <div class="text-sm">
+                        <a href="{% url 'reqs:detail' req.pk %}" class="font-medium text-indigo-600 hover:text-indigo-500">{{ req.title }}</a>
+                      </div>
+                      <p class="mt-0.5 text-sm text-gray-500">
+                        {% if req.created_at|date:"Y-m-d" == req.updated_at|date:"Y-m-d" %}
+                          {% trans "作成" %}: {{ req.created_at|date:"Y/m/d H:i" }}
+                        {% else %}
+                          {% trans "更新" %}: {{ req.updated_at|date:"Y/m/d H:i" }}
+                        {% endif %}
+                      </p>
+                    </div>
+                    <div class="mt-2 text-sm text-gray-700">
+                      <p>
+                        {% if req.company_from == user.company %}
+                          {% trans "送信先" %}: {{ req.company_to.name }}
+                        {% else %}
+                          {% trans "送信元" %}: {{ req.company_from.name }}
+                        {% endif %}
+                        • 
+                        {% trans "作成者" %}: {{ req.creator.get_full_name|default:req.creator.email }}
+                        • 
+                        {% trans "ステータス" %}: 
+                        {% if req.status == 'draft' %}
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                            {% trans "下書き" %}
+                          </span>
+                        {% elif req.status == 'pending' %}
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
+                            {% trans "保留中" %}
+                          </span>
+                        {% elif req.status == 'review' %}
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                            {% trans "レビュー中" %}
+                          </span>
+                        {% elif req.status == 'approved' %}
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                            {% trans "承認済み" %}
+                          </span>
+                        {% elif req.status == 'rejected' %}
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800">
+                            {% trans "却下" %}
+                          </span>
+                        {% elif req.status == 'completed' %}
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-purple-100 text-purple-800">
+                            {% trans "完了" %}
+                          </span>
+                        {% elif req.status == 'cancelled' %}
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                            {% trans "キャンセル" %}
+                          </span>
+                        {% endif %}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+          
+          <!-- Comment Activities -->
+          {% for comment in recent_comments %}
+            <li>
+              <div class="relative pb-8">
+                {% if not forloop.last %}
+                <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                {% endif %}
+                <div class="relative flex items-start space-x-3">
+                  <div class="relative">
+                    <div class="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
+                      <svg class="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div>
+                      <div class="text-sm">
+                        <a href="{% url 'reqs:detail' comment.request.pk %}" class="font-medium text-indigo-600 hover:text-indigo-500">
+                          {% trans "リクエスト" %}: {{ comment.request.title }}
+                        </a>
+                      </div>
+                      <p class="mt-0.5 text-sm text-gray-500">
+                        {% trans "コメント" %}: {{ comment.created_at|date:"Y/m/d H:i" }} by {{ comment.author.get_full_name|default:comment.author.email }}
+                      </p>
+                    </div>
+                    <div class="mt-2 text-sm text-gray-700">
+                      <p>{{ comment.content|truncatechars:100 }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+          
+          <!-- Approval Activities -->
+          {% for approval in recent_approvals %}
+            <li>
+              <div class="relative pb-8">
+                {% if not forloop.last %}
+                <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                {% endif %}
+                <div class="relative flex items-start space-x-3">
+                  <div class="relative">
+                    <div class="h-10 w-10 rounded-full {% if approval.status == 'approved' %}bg-green-500{% else %}bg-red-500{% endif %} flex items-center justify-center ring-8 ring-white">
+                      {% if approval.status == 'approved' %}
+                        <svg class="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                      {% else %}
+                        <svg class="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div>
+                      <div class="text-sm">
+                        <a href="{% url 'reqs:detail' approval.request.pk %}" class="font-medium text-indigo-600 hover:text-indigo-500">
+                          {% trans "リクエスト" %}: {{ approval.request.title }}
+                        </a>
+                      </div>
+                      <p class="mt-0.5 text-sm text-gray-500">
+                        {% if approval.status == 'approved' %}
+                          {% trans "承認" %}
+                        {% else %}
+                          {% trans "却下" %}
+                        {% endif %}
+                        : {{ approval.updated_at|date:"Y/m/d H:i" }} by {{ approval.approver.get_full_name|default:approval.approver.email }}
+                      </p>
+                    </div>
+                    <div class="mt-2 text-sm text-gray-700">
+                      {% if approval.comment %}
+                        <p>{{ approval.comment|truncatechars:100 }}</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+          
+          {% if not recent_requests and not recent_comments and not recent_approvals %}
+            <li class="py-8 text-center text-gray-500">
+              {% trans "最近の活動はありません。" %}
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

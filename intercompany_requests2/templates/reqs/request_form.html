@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if is_edit %}{% trans "Edit Request" %}{% else %}{% trans "Create Request" %}{% endif %} | InterConnect{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <!-- Back button -->
+  <div class="mb-6">
+    <a href="{% if is_edit %}{% url 'reqs:detail' request_obj.pk %}{% else %}{% url 'reqs:list' %}{% endif %}" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+      <svg class="-ml-1 mr-1 h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+      </svg>
+      {% if is_edit %}
+        {% trans "リクエスト詳細に戻る" %}
+      {% else %}
+        {% trans "リクエスト一覧に戻る" %}
+      {% endif %}
+    </a>
+  </div>
+
+  <!-- Form card -->
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">
+        {% if is_edit %}
+          {% trans "リクエスト編集" %}
+        {% else %}
+          {% trans "新規リクエスト作成" %}
+        {% endif %}
+      </h3>
+      <p class="mt-1 max-w-2xl text-sm text-gray-500">
+        {% if is_edit %}
+          {% trans "リクエストの内容を更新します。" %}
+        {% else %}
+          {% trans "新しいリクエストを作成します。必要項目を入力してください。" %}
+        {% endif %}
+      </p>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+      <form method="POST" enctype="multipart/form-data" class="space-y-6" id="request-form">
+        {% csrf_token %}
+        
+        {{ form|crispy }}
+        
+        {% if not is_edit %}
+          <div class="border-t border-gray-200 pt-6" id="approver-section">
+            <h4 class="text-md font-medium text-gray-900 mb-4">{% trans "承認者の設定" %}</h4>
+            <p class="text-sm text-gray-500 mb-4">{% trans "承認者を選択し、順序を設定してください。宛先企業を選択すると、その企業の管理者およびマネージャーが選択可能になります。" %}</p>
+            
+            <div id="approver-formset">
+              {{ approver_formset.management_form }}
+              
+              {% for form in approver_formset %}
+                <div class="approver-form mb-4 border border-gray-200 rounded-md p-4">
+                  <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                    <div class="md:col-span-5">
+                      {{ form.approver|as_crispy_field }}
+                      {{ form.order }}
+                    </div>
+                    <div class="flex items-end">
+                      {% if forloop.first %}
+                        <button type="button" id="add-approver" class="w-full inline-flex justify-center items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                          <svg class="h-5 w-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                          </svg>
+                          {% trans "追加" %}
+                        </button>
+                      {% else %}
+                        <button type="button" class="remove-approver w-full inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                          <svg class="h-5 w-5 mr-1 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                          </svg>
+                          {% trans "削除" %}
+                        </button>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+            
+            <div id="no-company-warning" class="bg-yellow-50 p-4 rounded-md mt-4 hidden">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-yellow-800">{% trans "宛先企業を選択してください" %}</h3>
+                  <div class="mt-2 text-sm text-yellow-700">
+                    <p>{% trans "承認者は宛先企業の管理者またはマネージャーから選択できます。先に宛先企業を選択してください。" %}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+        
+        <div class="flex justify-end">
+          <a href="{% if is_edit %}{% url 'reqs:detail' request_obj.pk %}{% else %}{% url 'reqs:list' %}{% endif %}" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            {% trans "キャンセル" %}
+          </a>
+          <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            {% if is_edit %}
+              {% trans "更新" %}
+            {% else %}
+              {% trans "作成" %}
+            {% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if not is_edit %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 宛先企業の選択フィールドを取得
+    const companyToField = document.getElementById('id_company_to');
+    // 承認者フォームセットのコンテナを取得
+    const approverSection = document.getElementById('approver-section');
+    const formsetPrefix = "approvers";
+    const addButton = document.getElementById('add-approver');
+    const formContainer = document.getElementById('approver-formset');
+    const totalFormsInput = document.querySelector(`#id_${formsetPrefix}-TOTAL_FORMS`);
+    const initialForms = document.querySelector(`#id_${formsetPrefix}-INITIAL_FORMS`);
+    const maxForms = document.querySelector(`#id_${formsetPrefix}-MAX_NUM_FORMS`);
+    const noCompanyWarning = document.getElementById('no-company-warning');
+    
+    // 初期状態で承認者セクションを無効化（宛先企業が選択されていない場合）
+    if (!companyToField.value) {
+      disableApproverSection();
+    }
+    
+    // 宛先企業が変更されたときの処理
+    companyToField.addEventListener('change', function() {
+      if (this.value) {
+        // 企業が選択された場合、承認者セクションを有効化
+        enableApproverSection();
+      } else {
+        // 企業が選択されていない場合、承認者セクションを無効化
+        disableApproverSection();
+      }
+    });
+    
+    // 承認者セクションを無効化する関数
+    function disableApproverSection() {
+      // 承認者フォームのセレクトを全て無効化
+      document.querySelectorAll('.select-approver').forEach(select => {
+        select.disabled = true;
+      });
+      
+      // 追加ボタンを無効化
+      if (addButton) addButton.disabled = true;
+      
+      // 警告メッセージを表示
+      noCompanyWarning.classList.remove('hidden');
+    }
+    
+    // 承認者セクションを有効化する関数
+    function enableApproverSection() {
+      // 承認者フォームのセレクトを全て有効化
+      document.querySelectorAll('.select-approver').forEach(select => {
+        select.disabled = false;
+      });
+      
+      // 追加ボタンを有効化
+      if (addButton) addButton.disabled = false;
+      
+      // 警告メッセージを非表示
+      noCompanyWarning.classList.add('hidden');
+    }
+    
+    // 初期フォーム数
+    let formCount = parseInt(totalFormsInput.value);
+    
+    // 追加ボタンの処理
+    if (addButton) {
+      addButton.addEventListener('click', function() {
+        // 宛先企業が選択されていない場合は何もしない
+        if (!companyToField.value) {
+          alert('{% trans "先に宛先企業を選択してください。" %}');
+          return;
+        }
+        
+        // フォームをクローン
+        const forms = document.querySelectorAll('.approver-form');
+        const newForm = forms[0].cloneNode(true);
+        
+        // インデックスを更新
+        updateFormIndex(newForm, formCount);
+        
+        // フォームの値をクリア
+        newForm.querySelectorAll('input, select').forEach(input => {
+          if (input.type !== 'hidden' || !input.name.includes('TOTAL_FORMS') && !input.name.includes('INITIAL_FORMS') && !input.name.includes('MAX_NUM_FORMS')) {
+            input.value = '';
+          }
+        });
+        
+        // 追加ボタンを削除ボタンに変更
+        const addBtn = newForm.querySelector('#add-approver');
+        if (addBtn) {
+          const removeBtn = document.createElement('button');
+          removeBtn.type = 'button';
+          removeBtn.className = 'remove-approver w-full inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500';
+          removeBtn.innerHTML = `
+            <svg class="h-5 w-5 mr-1 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            {% trans "削除" %}
+          `;
+          addBtn.parentNode.replaceChild(removeBtn, addBtn);
+        }
+        
+        // 削除ボタンのイベントハンドラを追加
+        const removeBtn = newForm.querySelector('.remove-approver');
+        if (removeBtn) {
+          removeBtn.addEventListener('click', function() {
+            newForm.remove();
+            formCount--;
+            totalFormsInput.value = formCount;
+            
+            // 残りのフォームのインデックスを振り直す
+            const forms = document.querySelectorAll('.approver-form');
+            forms.forEach((form, index) => {
+              if (index > 0) {  // 最初のフォームは飛ばす
+                updateFormIndex(form, index);
+              }
+            });
+          });
+        }
+        
+        // 順序フィールドを更新
+        const orderInput = newForm.querySelector('input[name$="-order"]');
+        if (orderInput) {
+          orderInput.value = formCount;
+        }
+        
+        // フォームコンテナに追加
+        formContainer.appendChild(newForm);
+        
+        // フォーム数を更新
+        formCount++;
+        totalFormsInput.value = formCount;
+      });
+    }
+    
+    // 既存の削除ボタンにイベントハンドラを追加
+    document.querySelectorAll('.remove-approver').forEach(button => {
+      button.addEventListener('click', function() {
+        const form = button.closest('.approver-form');
+        form.remove();
+        formCount--;
+        totalFormsInput.value = formCount;
+        
+        // 残りのフォームのインデックスを振り直す
+        const forms = document.querySelectorAll('.approver-form');
+        forms.forEach((form, index) => {
+          if (index > 0) {  // 最初のフォームは飛ばす
+            updateFormIndex(form, index);
+          }
+        });
+      });
+    });
+    
+    // フォームのインデックスを更新する関数
+    function updateFormIndex(form, index) {
+      form.querySelectorAll('input, select, textarea, label').forEach(element => {
+        if (element.name) {
+          element.name = element.name.replace(/-\d+-/, `-${index}-`);
+        }
+        if (element.id) {
+          element.id = element.id.replace(/-\d+-/, `-${index}-`);
+        }
+        if (element.htmlFor) {
+          element.htmlFor = element.htmlFor.replace(/-\d+-/, `-${index}-`);
+        }
+      });
+    }
+    
+    // フォーム送信前の検証
+    document.getElementById('request-form').addEventListener('submit', function(e) {
+      // 宛先企業が選択されているか確認
+      if (!companyToField.value) {
+        e.preventDefault();
+        alert('{% trans "宛先企業を選択してください。" %}');
+        companyToField.focus();
+        return false;
+      }
+      
+      // 少なくとも1人の承認者が選択されているか確認
+      const approverSelects = document.querySelectorAll('.select-approver');
+      let hasApprover = false;
+      
+      approverSelects.forEach(select => {
+        if (select.value) {
+          hasApprover = true;
+        }
+      });
+      
+      if (!hasApprover) {
+        e.preventDefault();
+        alert('{% trans "少なくとも1人の承認者を選択してください。" %}');
+        return false;
+      }
+      
+      return true;
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,50 @@
+{% load i18n %}
+
+<div id="comment-{{ comment.id }}" class="bg-white p-4 rounded-lg shadow mb-4">
+  <div class="flex justify-between">
+    <div class="flex items-start">
+      <div class="flex-shrink-0">
+        <img class="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
+             src="{% if comment.author.profile_picture %}{{ comment.author.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ comment.author.first_name }}+{{ comment.author.last_name }}&background=6366F1&color=fff{% endif %}"
+             alt="{{ comment.author.get_full_name|default:comment.author.email }}">
+      </div>
+      <div class="ml-3">
+        <p class="text-sm font-medium text-gray-900">
+          {{ comment.author.get_full_name|default:comment.author.email }}
+          {% if comment.author.company %}
+            <span class="text-xs text-gray-500">
+              ({{ comment.author.company.name }})
+            </span>
+          {% endif %}
+        </p>
+        <p class="text-xs text-gray-500">
+          {{ comment.created_at|date:"Y/m/d H:i" }}
+          {% if comment.updated_at != comment.created_at %}
+            <span class="italic">{% trans "(編集済み)" %}</span>
+          {% endif %}
+        </p>
+      </div>
+    </div>
+    
+    {% if user == comment.author or user.is_admin or user.is_manager %}
+    <div class="flex space-x-2">
+      <button class="text-xs text-indigo-600 hover:text-indigo-800"
+              hx-get="{% url 'comments:edit' comment.id %}"
+              hx-target="#comment-{{ comment.id }}"
+              hx-swap="outerHTML">
+        {% trans "編集" %}
+      </button>
+      <button class="text-xs text-red-600 hover:text-red-800"
+              hx-get="{% url 'comments:delete' comment.id %}"
+              hx-target="#comment-{{ comment.id }}"
+              hx-swap="outerHTML">
+        {% trans "削除" %}
+      </button>
+    </div>
+    {% endif %}
+  </div>
+  
+  <div class="mt-2 text-sm text-gray-700 whitespace-pre-line">
+    {{ comment.content }}
+  </div>
+</div>

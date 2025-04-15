@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}InterConnect{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <!-- Custom CSS -->
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+    <!-- Header -->
+    {% if user.is_authenticated %}
+    <header class="bg-indigo-600 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="{% url 'dashboard:home' %}" class="font-bold text-xl">InterConnect</a>
+                    </div>
+                    <nav class="ml-6 flex items-center space-x-4">
+                        <a href="{% url 'dashboard:home' %}" class="px-3 py-2 rounded-md text-sm font-medium {% if request.resolver_match.url_name == 'home' %}bg-indigo-700{% else %}hover:bg-indigo-500{% endif %}">
+                            ダッシュボード
+                        </a>
+                        <a href="{% url 'reqs:list' %}" class="px-3 py-2 rounded-md text-sm font-medium {% if 'requests' in request.path %}bg-indigo-700{% else %}hover:bg-indigo-500{% endif %}">
+                            リクエスト
+                        </a>
+                        <a href="{% url 'companies:list' %}" class="px-3 py-2 rounded-md text-sm font-medium {% if 'companies' in request.path %}bg-indigo-700{% else %}hover:bg-indigo-500{% endif %}">
+                            企業
+                        </a>
+                        {% if user.is_admin or user.is_manager %}
+                        <a href="{% url 'accounts:company_users' %}" class="px-3 py-2 rounded-md text-sm font-medium {% if 'users' in request.path %}bg-indigo-700{% else %}hover:bg-indigo-500{% endif %}">
+                            ユーザー
+                        </a>
+                        {% endif %}
+                    </nav>
+                </div>
+                <div class="flex items-center">
+                    <!-- 通知ボタン -->
+                    <a href="{% url 'notifications:list' %}" class="relative rounded-full p-1 mr-3 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <span class="sr-only">通知</span>
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        
+                        <!-- 未読通知カウントバッジ -->
+                        {% if unread_notifications_count > 0 %}
+                        <span class="absolute top-0 right-0 -mt-1 -mr-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
+                            {{ unread_notifications_count }}
+                        </span>
+                        {% endif %}
+                    </a>
+                    
+                    <!-- ユーザーメニュー -->
+                    <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                        <button 
+                            @click="open = !open" 
+                            class="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:shadow-outline"
+                        >
+                            <span class="mr-2">{{ user.email }}</span>
+                            <img 
+                                class="h-8 w-8 rounded-full object-cover border-2 border-white"
+                                src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=6366F1&color=fff{% endif %}"
+                                alt="{{ user.first_name }}"
+                            >
+                        </button>
+                        <div 
+                            x-show="open"
+                            x-cloak 
+                            class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg z-50"
+                        >
+                            <div class="py-1 rounded-md bg-white shadow-xs">
+                                <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    プロフィール
+                                </a>
+                                <a href="{% url 'notifications:list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    通知
+                                </a>
+                                <div class="border-t border-gray-100"></div>
+                                <a href="{% url 'account_logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    ログアウト
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="rounded-md p-4 mb-2 {% if message.tags == 'error' %}bg-red-50 text-red-800{% elif message.tags == 'success' %}bg-green-50 text-green-800{% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-800{% else %}bg-blue-50 text-blue-800{% endif %}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-gray-500 text-sm">
+                &copy; {% now "Y" %} InterConnect. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

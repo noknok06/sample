@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Notifications" %} | InterConnect{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+  <!-- Page header -->
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-900">{% trans "通知" %}</h1>
+    
+    <div class="flex space-x-3">
+      {% if unread_count > 0 %}
+      <form method="POST" action="{% url 'notifications:mark_all_read' %}" 
+            hx-post="{% url 'notifications:mark_all_read' %}" 
+            hx-swap="none"
+            hx-trigger="click"
+            class="inline-block">
+        {% csrf_token %}
+        <button type="submit" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          {% trans "すべて既読にする" %}
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Notification list -->
+  <div>
+    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+      <ul class="divide-y divide-gray-200" id="notification-list">
+        {% if notifications %}
+          {% for notification in notifications %}
+            <li id="notification-{{ notification.id }}" class="px-4 py-4 sm:px-6 {% if not notification.is_read %}bg-indigo-50{% endif %}">
+              <div class="flex items-center justify-between">
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-sm font-medium text-gray-900 truncate">
+                    {{ notification.title }}
+                  </h3>
+                  <p class="mt-1 text-sm text-gray-600">
+                    {{ notification.message }}
+                  </p>
+                  <p class="mt-1 text-xs text-gray-500">
+                    {{ notification.created_at|date:"Y/m/d H:i" }}
+                  </p>
+                </div>
+                <div class="ml-4 flex-shrink-0 flex">
+                  {% if not notification.is_read %}
+                    <form method="POST" action="{% url 'notifications:mark_read' notification.id %}" 
+                          hx-post="{% url 'notifications:mark_read' notification.id %}" 
+                          hx-target="#notification-{{ notification.id }}"
+                          hx-swap="outerHTML"
+                          class="inline-block">
+                      {% csrf_token %}
+                      <button type="submit" class="text-xs text-indigo-600 hover:text-indigo-900">
+                        {% trans "既読にする" %}
+                      </button>
+                    </form>
+                  {% else %}
+                    <span class="text-xs text-gray-500">{% trans "既読" %}</span>
+                  {% endif %}
+                </div>
+              </div>
+              
+              {% if notification.content_object %}
+                <div class="mt-2">
+                  <a href="
+                    {% if notification.content_object|class_name == 'Request' %}
+                      {% url 'reqs:detail' notification.content_object.id %}
+                    {% elif notification.content_object|class_name == 'Comment' %}
+                      {% url 'reqs:detail' notification.content_object.request.id %}
+                    {% endif %}
+                  " class="text-sm text-indigo-600 hover:text-indigo-900">
+                    {% trans "詳細を表示" %} →
+                  </a>
+                </div>
+              {% endif %}
+            </li>
+          {% endfor %}
+        {% else %}
+          <li class="px-4 py-5 text-center text-gray-500">
+            {% trans "通知はありません。" %}
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('htmx:afterRequest', function(event) {
+    // 全既読処理が成功したら、ページをリロード
+    if (event.detail.successful && 
+        event.detail.requestConfig.path === "{% url 'notifications:mark_all_read' %}") {
+      window.location.reload();
+    }
+  });
+</script>
+{% endblock %}

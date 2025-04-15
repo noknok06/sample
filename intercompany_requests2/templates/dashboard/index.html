@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Dashboard" %} | InterConnect{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <!-- Page header -->
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-900">{% trans "ダッシュボード" %}</h1>
+    <a href="{% url 'reqs:create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+      {% trans "新規リクエスト作成" %}
+    </a>
+  </div>
+
+  <!-- Stats cards -->
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+    <!-- Total Requests -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+      <div class="p-5">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 bg-indigo-100 rounded-md p-3">
+            <svg class="h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">{% trans "全リクエスト" %}</dt>
+              <dd>
+                <div class="text-lg font-medium text-gray-900">{{ requests_stats.total }}</div>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Requests -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+      <div class="p-5">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 bg-yellow-100 rounded-md p-3">
+            <svg class="h-6 w-6 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">{% trans "保留中" %}</dt>
+              <dd>
+                <div class="text-lg font-medium text-gray-900">{{ requests_stats.pending }}</div>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 px-5 py-3">
+        <div class="text-sm">
+          <a href="{% url 'reqs:list' %}?status=pending" class="font-medium text-indigo-600 hover:text-indigo-500">{% trans "表示" %}</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Approved Requests -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+      <div class="p-5">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
+            <svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">{% trans "承認済み" %}</dt>
+              <dd>
+                <div class="text-lg font-medium text-gray-900">{{ requests_stats.approved }}</div>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 px-5 py-3">
+        <div class="text-sm">
+          <a href="{% url 'reqs:list' %}?status=approved" class="font-medium text-indigo-600 hover:text-indigo-500">{% trans "表示" %}</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rejected Requests -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+      <div class="p-5">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 bg-red-100 rounded-md p-3">
+            <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">{% trans "却下" %}</dt>
+              <dd>
+                <div class="text-lg font-medium text-gray-900">{{ requests_stats.rejected }}</div>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 px-5 py-3">
+        <div class="text-sm">
+          <a href="{% url 'reqs:list' %}?status=rejected" class="font-medium text-indigo-600 hover:text-indigo-500">{% trans "表示" %}</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Needs Approval -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+      <div class="p-5">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
+            <svg class="h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 12h6m-6 4h6m-6-8h6" />
+            </svg>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">{% trans "承認待ち" %}</dt>
+              <dd>
+                <div class="text-lg font-medium text-gray-900">{{ requests_stats.needs_approval }}</div>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 px-5 py-3">
+        <div class="text-sm">
+          <a href="{% url 'reqs:list' %}?needs_approval=true" class="font-medium text-indigo-600 hover:text-indigo-500">{% trans "表示" %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main dashboard panels -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Approval Requests -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">{% trans "あなたの承認待ちリクエスト" %}</h3>
+        {% if approval_requests %}
+          <a href="{% url 'reqs:list' %}?needs_approval=true" class="text-sm text-indigo-600 hover:text-indigo-500">{% trans "すべて表示" %}</a>
+        {% endif %}
+      </div>
+      
+      {% if approval_requests %}
+        <ul class="divide-y divide-gray-200">
+          {% for req in approval_requests %}
+            <li class="px-5 py-4 hover:bg-gray-50">
+              <a href="{% url 'reqs:detail' req.pk %}" class="block">
+                <div class="flex justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-indigo-600">{{ req.title }}</p>
+                    <p class="text-xs text-gray-500 mt-1">
+                      {% trans "送信元" %}: {{ req.company_from.name }} • {% trans "作成者" %}: {{ req.creator.get_full_name|default:req.creator.email }}
+                    </p>
+                  </div>
+                  <div class="flex items-center">
+                    {% if req.priority == 'urgent' %}
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800">
+                        {% trans "緊急" %}
+                      </span>
+                    {% elif req.priority == 'high' %}
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-orange-100 text-orange-800">
+                        {% trans "高" %}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="px-5 py-8 text-center text-gray-500">
+          <p>{% trans "承認待ちのリクエストはありません。" %}</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Priority Requests -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">{% trans "優先度の高いリクエスト" %}</h3>
+        {% if priority_requests %}
+          <a href="{% url 'reqs:list' %}?priority=high" class="text-sm text-indigo-600 hover:text-indigo-500">{% trans "すべて表示" %}</a>
+        {% endif %}
+      </div>
+      
+      {% if priority_requests %}
+        <ul class="divide-y divide-gray-200">
+          {% for req in priority_requests %}
+            <li class="px-5 py-4 hover:bg-gray-50">
+              <a href="{% url 'reqs:detail' req.pk %}" class="block">
+                <div class="flex justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-indigo-600">{{ req.title }}</p>
+                    <p class="text-xs text-gray-500 mt-1">
+                      {% if req.company_from == user.company %}
+                        {% trans "宛先" %}: {{ req.company_to.name }}
+                      {% else %}
+                        {% trans "送信元" %}: {{ req.company_from.name }}
+                      {% endif %}
+                      • 
+                      {% if req.deadline %}
+                        {% trans "期限" %}: {{ req.deadline|date:"Y/m/d" }}
+                      {% else %}
+                        {% trans "期限なし" %}
+                      {% endif %}
+                    </p>
+                  </div>
+                  <div class="flex items-center">
+                    {% if req.priority == 'urgent' %}
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800">
+                        {% trans "緊急" %}
+                      </span>
+                    {% elif req.priority == 'high' %}
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-orange-100 text-orange-800">
+                        {% trans "高" %}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="px-5 py-8 text-center text-gray-500">
+          <p>{% trans "優先度の高いリクエストはありません。" %}</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Deadline approaching -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">{% trans "期限が近いリクエスト" %}</h3>
+      </div>
+      
+      {% if deadline_soon %}
+        <ul class="divide-y divide-gray-200">
+          {% for req in deadline_soon %}
+            <li class="px-5 py-4 hover:bg-gray-50">
+              <a href="{% url 'reqs:detail' req.pk %}" class="block">
+                <div class="flex justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-indigo-600">{{ req.title }}</p>
+                    <p class="text-xs text-gray-500 mt-1">
+                      {% if req.company_from == user.company %}
+                        {% trans "宛先" %}: {{ req.company_to.name }}
+                      {% else %}
+                        {% trans "送信元" %}: {{ req.company_from.name }}
+                      {% endif %}
+                    </p>
+                  </div>
+                  <div class="flex items-center">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
+                      {{ req.deadline|date:"Y/m/d" }}
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="px-5 py-8 text-center text-gray-500">
+          <p>{% trans "期限が近いリクエストはありません。" %}</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">{% trans "最近の活動" %}</h3>
+        <a href="{% url 'dashboard:activities' %}" class="text-sm text-indigo-600 hover:text-indigo-500">{% trans "すべて表示" %}</a>
+      </div>
+      
+      <ul class="divide-y divide-gray-200">
+        {% if recent_requests %}
+          {% for req in recent_requests|slice:":3" %}
+            <li class="px-5 py-4 hover:bg-gray-50">
+              <a href="{% url 'reqs:detail' req.pk %}" class="block">
+                <div class="flex justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-indigo-600">
+                      {% trans "リクエスト" %}: {{ req.title }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                      {{ req.updated_at|date:"Y/m/d H:i" }}
+                      • 
+                      {% if req.status == 'draft' %}
+                        <span class="text-gray-600">{% trans "下書き" %}</span>
+                      {% elif req.status == 'pending' %}
+                        <span class="text-yellow-600">{% trans "保留中" %}</span>
+                      {% elif req.status == 'approved' %}
+                        <span class="text-green-600">{% trans "承認済み" %}</span>
+                      {% elif req.status == 'rejected' %}
+                        <span class="text-red-600">{% trans "却下" %}</span>
+                      {% endif %}
+                    </p>
+                  </div>
+                </div>
+              </a>
+            </li>
+          {% endfor %}
+        {% endif %}
+        
+        {% if recent_comments %}
+          {% for comment in recent_comments|slice:":2" %}
+            <li class="px-5 py-4 hover:bg-gray-50">
+              <a href="{% url 'reqs:detail' comment.request.pk %}" class="block">
+                <div>
+                  <p class="text-sm font-medium text-indigo-600">
+                    {% trans "コメント" %}: {{ comment.author.get_full_name|default:comment.author.email }}
+                  </p>
+                  <p class="text-xs text-gray-500 mt-1">
+                    {{ comment.created_at|date:"Y/m/d H:i" }}
+                    • 
+                    {% trans "リクエスト" %}: {{ comment.request.title|truncatechars:30 }}
+                  </p>
+                  <p class="text-sm text-gray-700 mt-2">
+                    {{ comment.content|truncatechars:70 }}
+                  </p>
+                </div>
+              </a>
+            </li>
+          {% endfor %}
+        {% endif %}
+        
+        {% if not recent_requests and not recent_comments %}
+          <li class="px-5 py-8 text-center text-gray-500">
+            <p>{% trans "最近の活動はありません。" %}</p>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

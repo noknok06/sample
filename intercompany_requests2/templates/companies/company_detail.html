@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ company.name }} | InterConnect{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <!-- Back button -->
+  <div>
+    <a href="{% url 'companies:list' %}" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+      <svg class="-ml-1 mr-1 h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+      </svg>
+      {% trans "企業一覧に戻る" %}
+    </a>
+  </div>
+
+  <!-- Company info -->
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-start">
+      <div class="flex items-center">
+        {% if company.logo %}
+          <div class="mr-4">
+            <img class="h-16 w-16 object-contain" src="{{ company.logo.url }}" alt="{{ company.name }}">
+          </div>
+        {% endif %}
+        <div>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            {{ company.name }}
+          </h3>
+          <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            {{ company.industry|default:"" }}
+          </p>
+        </div>
+      </div>
+      <div>
+        {% if is_own_company and user.is_admin %}
+          <a href="{% url 'companies:edit' company.pk %}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            {% trans "編集" %}
+          </a>
+        {% elif not is_connected and connection and connection.status == 'pending' %}
+          {% if connection.company_from == user.company %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
+              {% trans "接続リクエスト送信済み" %}
+            </span>
+          {% else %}
+            <div class="flex space-x-2">
+              <form method="POST" action="{% url 'companies:connection_reject' connection.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                  {% trans "拒否" %}
+                </button>
+              </form>
+              <form method="POST" action="{% url 'companies:connection_accept' connection.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                  {% trans "承認" %}
+                </button>
+              </form>
+            </div>
+          {% endif %}
+        {% elif not is_connected and not is_own_company and user.is_admin or user.is_manager %}
+          <a href="{% url 'companies:connection_create' %}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            {% trans "接続リクエスト送信" %}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="border-t border-gray-200">
+      <dl>
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "住所" %}
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {{ company.address|default:_("未設定")|linebreaksbr }}
+          </dd>
+        </div>
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "電話番号" %}
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {{ company.phone|default:_("未設定") }}
+          </dd>
+        </div>
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "メールアドレス" %}
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {% if company.email %}
+              <a href="mailto:{{ company.email }}" class="text-indigo-600 hover:text-indigo-500">
+                {{ company.email }}
+              </a>
+            {% else %}
+              {% trans "未設定" %}
+            {% endif %}
+          </dd>
+        </div>
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "ウェブサイト" %}
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {% if company.website %}
+              <a href="{{ company.website }}" target="_blank" class="text-indigo-600 hover:text-indigo-500">
+                {{ company.website }}
+              </a>
+            {% else %}
+              {% trans "未設定" %}
+            {% endif %}
+          </dd>
+        </div>
+        {% if is_own_company %}
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "招待コード" %}
+          </dt>
+          <dd class="mt-1 text-sm font-medium text-indigo-600 sm:mt-0 sm:col-span-2">
+            {{ company.invitation_code }}
+          </dd>
+        </div>
+        {% endif %}
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
+            {% trans "説明" %}
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {{ company.description|default:_("説明はありません")|linebreaksbr }}
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  {% if is_connected or is_own_company %}
+  <!-- Company Users (Only if connected or own company) -->
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">
+        {% trans "担当者" %}
+      </h3>
+      <p class="mt-1 max-w-2xl text-sm text-gray-500">
+        {% trans "この企業の主要担当者" %}
+      </p>
+    </div>
+    <div class="border-t border-gray-200">
+      <ul class="divide-y divide-gray-200">
+        {% for user in company.users.all %}
+          {% if user.is_admin or user.is_manager %}
+            <li class="px-4 py-4 sm:px-6">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <img class="h-10 w-10 rounded-full object-cover"
+                    src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=6366F1&color=fff{% endif %}"
+                    alt="{{ user.get_full_name|default:user.email }}">
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-gray-900">
+                    {{ user.get_full_name|default:user.email }}
+                    {% if user.is_admin %}
+                      <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800">
+                        {% trans "管理者" %}
+                      </span>
+                    {% elif user.is_manager %}
+                      <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                        {% trans "マネージャー" %}
+                      </span>
+                    {% endif %}
+                  </p>
+                  <p class="text-sm text-gray-500">
+                    {{ user.position|default:"" }}
+                  </p>
+                </div>
+              </div>
+            </li>
+          {% endif %}
+        {% empty %}
+          <li class="px-4 py-5 sm:px-6 text-center text-gray-500">
+            {% trans "表示できる担当者がいません。" %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
