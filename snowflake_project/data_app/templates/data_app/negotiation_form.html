@@ -1,0 +1,75 @@
+{% extends 'data_app/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>{% if object %}商談編集{% else %}商談登録{% endif %}</h2>
+        
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_negotiation_date" class="form-label">商談日:</label>
+                            <input type="date" name="negotiation_date" id="id_negotiation_date" class="form-control" value="{% if form.negotiation_date.value %}{{ form.negotiation_date.value|date:'Y-m-d' }}{% endif %}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_person_in_charge" class="form-label">担当者:</label>
+                            <input type="text" name="person_in_charge" id="id_person_in_charge" class="form-control" value="{{ form.person_in_charge.value|default:'' }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_customer_name" class="form-label">顧客名:</label>
+                            <input type="text" name="customer_name" id="id_customer_name" class="form-control" value="{{ form.customer_name.value|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_expected_sales" class="form-label">予想売上:</label>
+                            <input type="number" name="expected_sales" id="id_expected_sales" class="form-control" value="{{ form.expected_sales.value|default:'' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_store_code" class="form-label">店舗コード:</label>
+                            <input type="text" name="store_code" id="id_store_code" class="form-control" value="{{ form.store_code.value|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_store_name" class="form-label">店舗名:</label>
+                            <input type="text" name="store_name" id="id_store_name" class="form-control" value="{{ form.store_name.value|default:'' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_target_categories" class="form-label">対象カテゴリ:</label>
+                        <input type="text" name="target_categories" id="id_target_categories" class="form-control" value="{{ form.target_categories.value|default:'' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_target_products" class="form-label">対象商品:</label>
+                        <textarea name="target_products" id="id_target_products" class="form-control" rows="3">{{ form.target_products.value|default:'' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_proposal_content" class="form-label">提案内容:</label>
+                        <textarea name="proposal_content" id="id_proposal_content" class="form-control" rows="10" required>{{ form.proposal_content.value|default:'' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_result_notes" class="form-label">結果メモ:</label>
+                        <textarea name="result_notes" id="id_result_notes" class="form-control" rows="5">{{ form.result_notes.value|default:'' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary">保存</button>
+                        <a href="{% url 'negotiation-list' %}" class="btn btn-secondary">キャンセル</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

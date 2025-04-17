@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "企業間接続リクエストへの応答" %} | InterConnect{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">
+        {% trans "企業間接続リクエスト" %}
+      </h3>
+      <p class="mt-1 max-w-2xl text-sm text-gray-500">
+        {% trans "接続リクエストへの応答" %}
+      </p>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+      <div class="flex items-center mb-4">
+        {% if connection.company_from.logo %}
+          <img src="{{ connection.company_from.logo.url }}" alt="{{ connection.company_from.name }}" class="h-16 w-16 object-contain mr-4">
+        {% endif %}
+        <div>
+          <h4 class="text-lg font-medium text-gray-900">
+            {{ connection.company_from.name }}
+          </h4>
+          <p class="text-sm text-gray-500">
+            {% trans "から接続リクエストが届いています" %}
+          </p>
+        </div>
+      </div>
+
+      <div class="rounded-md bg-blue-50 p-4 mb-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3 flex-1 md:flex md:justify-between">
+            <p class="text-sm text-blue-700">
+              {% trans "この接続リクエストを承認または拒否できます。承認すると、両社間で相互に接続が確立されます。" %}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-between space-x-4">
+        <form method="POST" action="{% url 'companies:connection_respond' connection.pk %}" class="w-full">
+          {% csrf_token %}
+          <button type="submit" name="action" value="reject" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+            {% trans "拒否" %}
+          </button>
+        </form>
+        <form method="POST" action="{% url 'companies:connection_respond' connection.pk %}" class="w-full">
+          {% csrf_token %}
+          <button type="submit" name="action" value="accept" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            {% trans "承認" %}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,321 @@
+{% extends 'data_app/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>提案内容生成</h2>
+        <p>POSデータを分析して、効果的な提案内容を自動生成します。</p>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>分析条件設定</h4>
+            </div>
+            <div class="card-body">
+                <form id="proposalForm" class="row g-3">
+                    <div class="col-md-6">
+                        <label for="storeSelect" class="form-label">対象店舗</label>
+                        <select id="storeSelect" class="form-select">
+                            <option value="">すべての店舗</option>
+                            {% for store in stores %}
+                            <option value="{{ store.STORE_CODE }}">{{ store.STORE_NAME }} (売上: {{ store.TOTAL_SALES_AMOUNT|floatformat:0|intcomma }} 円)</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">分析対象とする店舗を選択してください。空白の場合は全店舗データで分析します。</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="daysRange" class="form-label">分析期間: <span id="daysLabel">30</span>日間</label>
+                        <input type="range" class="form-range" id="daysRange" min="7" max="90" value="30" onchange="updateDaysLabel()">
+                        <div class="d-flex justify-content-between">
+                            <small>7日</small>
+                            <small>30日</small>
+                            <small>60日</small>
+                            <small>90日</small>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-bar-chart-line"></i> 提案を生成
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 店舗一覧を別途表形式で表示 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>店舗一覧</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>店舗コード</th>
+                                <th>店舗名</th>
+                                <th>総売上</th>
+                                <th>取扱商品数</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for store in stores %}
+                            <tr>
+                                <td>{{ store.STORE_CODE }}</td>
+                                <td>{{ store.STORE_NAME }}</td>
+                                <td>{{ store.TOTAL_SALES_AMOUNT|floatformat:0|intcomma }} 円</td>
+                                <td>{{ store.PRODUCT_COUNT }} 点</td>
+                                <td>
+                                    <button 
+                                        class="btn btn-sm btn-outline-primary select-store-btn" 
+                                        data-store-code="{{ store.STORE_CODE }}"
+                                        data-store-name="{{ store.STORE_NAME }}">
+                                        この店舗を選択
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">店舗データがありません。</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div id="loadingIndicator" style="display: none;" class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>データを分析中...</p>
+        </div>
+        
+        <div id="proposalResult" style="display: none;">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">生成された提案</h3>
+                        <button id="createNegotiationBtn" class="btn btn-success btn-sm">この提案で商談を登録</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <pre id="proposalContent" class="proposal-text"></pre>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">売上上位商品</div>
+                        <div class="card-body">
+                            <table class="table table-striped table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>商品名</th>
+                                        <th>カテゴリ</th>
+                                        <th>売上金額</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topProductsTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">売上上位カテゴリ</div>
+                        <div class="card-body">
+                            <table class="table table-striped table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>カテゴリ</th>
+                                        <th>サブカテゴリ</th>
+                                        <th>売上金額</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topCategoriesTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">店舗情報</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4" id="storeInfoDiv">
+                            <!-- 店舗情報がここに表示されます -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    <script>
+        function updateDaysLabel() {
+            const days = document.getElementById('daysRange').value;
+            document.getElementById('daysLabel').textContent = days;
+        }
+        
+        // 店舗選択ボタンのイベントリスナー
+        document.querySelectorAll('.select-store-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const storeCode = this.getAttribute('data-store-code');
+                const storeName = this.getAttribute('data-store-name');
+                const storeSelect = document.getElementById('storeSelect');
+                
+                // プルダウンで対応する店舗を選択
+                for (let i = 0; i < storeSelect.options.length; i++) {
+                    if (storeSelect.options[i].value === storeCode) {
+                        storeSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+                
+                // スクロールして上部の選択肢が見えるようにする
+                document.getElementById('proposalForm').scrollIntoView({
+                    behavior: 'smooth'
+                });
+                
+                // 視覚的フィードバック
+                document.getElementById('storeSelect').classList.add('border-primary');
+                setTimeout(() => {
+                    document.getElementById('storeSelect').classList.remove('border-primary');
+                }, 2000);
+            });
+        });
+        
+        // 既存のフォーム送信処理（省略）
+        document.getElementById('proposalForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const storeCode = document.getElementById('storeSelect').value;
+            const days = document.getElementById('daysRange').value;
+            
+            // ローディング表示
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('proposalResult').style.display = 'none';
+            
+            // APIリクエスト
+            fetch('{% url "generate-proposal" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    store_code: storeCode,
+                    days: days
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // ローディング非表示
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                if (data.error) {
+                    alert('エラーが発生しました: ' + data.error);
+                    return;
+                }
+            
+            // 提案内容を表示
+            document.getElementById('proposalContent').textContent = data.proposal;
+            
+            // 商品データを表示
+            const topProductsTable = document.getElementById('topProductsTable');
+            topProductsTable.innerHTML = '';
+            
+            data.top_products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.PRODUCT_NAME}</td>
+                    <td>${product.CATEGORY1_NAME}</td>
+                    <td>${new Intl.NumberFormat('ja-JP').format(product.TOTAL_SALES_AMOUNT)} 円</td>
+                `;
+                topProductsTable.appendChild(row);
+            });
+            
+            // カテゴリデータを表示
+            const topCategoriesTable = document.getElementById('topCategoriesTable');
+            topCategoriesTable.innerHTML = '';
+            
+            data.top_categories.forEach(category => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${category.CATEGORY1_NAME}</td>
+                    <td>${category.CATEGORY2_NAME}</td>
+                    <td>${new Intl.NumberFormat('ja-JP').format(category.TOTAL_SALES_AMOUNT)} 円</td>
+                `;
+                topCategoriesTable.appendChild(row);
+            });
+            
+            // 店舗情報を表示
+            const storeInfoDiv = document.getElementById('storeInfoDiv');
+            if (data.store_data) {
+                storeInfoDiv.innerHTML = `
+                    <p><strong>店舗名:</strong> ${data.store_data.STORE_NAME}</p>
+                    <p><strong>店舗コード:</strong> ${data.store_data.STORE_CODE}</p>
+                    <p><strong>総売上:</strong> ${new Intl.NumberFormat('ja-JP').format(data.store_data.TOTAL_SALES_AMOUNT)} 円</p>
+                    <p><strong>取扱商品数:</strong> ${data.store_data.PRODUCT_COUNT} 点</p>
+                    <p><strong>営業日数:</strong> ${data.store_data.SALES_DAYS} 日</p>
+                `;
+            } else {
+                storeInfoDiv.innerHTML = '<p>店舗データはありません。</p>';
+            }
+            
+            // ボタンイベントを設定
+            document.getElementById('createNegotiationBtn').onclick = function() {
+                // 商談登録ページに提案内容を引き継いで遷移
+                let categoryNames = '';
+                if (data.top_categories && data.top_categories.length > 0) {
+                    categoryNames = data.top_categories.map(cat => cat.CATEGORY1_NAME).join(', ');
+                }
+                
+                let productNames = '';
+                if (data.top_products && data.top_products.length > 0) {
+                    productNames = data.top_products.map(prod => prod.PRODUCT_NAME).join('\n');
+                }
+                
+                let expectedSales = '';
+                if (data.store_data) {
+                    // 単純に15%増と仮定
+                    expectedSales = Math.round(data.store_data.TOTAL_SALES_AMOUNT * 1.15);
+                }
+                
+                const url = new URL("{% url 'negotiation-create' %}", window.location.origin);
+                url.searchParams.append('proposal', data.proposal);
+                
+                if (data.store_data) {
+                    url.searchParams.append('store_code', data.store_data.STORE_CODE);
+                    url.searchParams.append('store_name', data.store_data.STORE_NAME);
+                }
+                
+                url.searchParams.append('categories', categoryNames);
+                url.searchParams.append('products', productNames);
+                url.searchParams.append('expected_sales', expectedSales);
+                
+                window.location.href = url.toString();
+            };
+            
+            // 結果表示
+            document.getElementById('proposalResult').style.display = 'block';
+        })
+        .catch(error => {
+            document.getElementById('loadingIndicator').style.display = 'none';
+            alert('エラーが発生しました: ' + error);
+        });
+    });
+</script>
+{% endblock %}

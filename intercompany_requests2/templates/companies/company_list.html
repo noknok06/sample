@@ -1,153 +1,183 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Companies" %} | InterConnect{% endblock %}
+{% block title %}{% trans "Company Connections" %} | InterConnect{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
   <!-- Page header -->
   <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-gray-900">{% trans "企業" %}</h1>
+    <a href="{% url 'companies:list' %}" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+      <svg class="-ml-1 mr-1 h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+      </svg>
+      {% trans "企業一覧に戻る" %}
+    </a>
     
-    {% if user.is_admin %}
-    <div>
-      <a href="{% url 'companies:create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-        {% trans "企業作成" %}
-      </a>
-      <a href="{% url 'companies:connections' %}" class="ml-3 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-        {% trans "企業間接続" %}
-      </a>
-    </div>
-    {% elif user.is_manager %}
-    <div>
-      <a href="{% url 'companies:connections' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-        {% trans "企業間接続" %}
-      </a>
-    </div>
+    {% if user.is_admin or user.is_manager %}
+    <a href="{% url 'companies:connection_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+      {% trans "新規接続リクエスト" %}
+    </a>
     {% endif %}
   </div>
 
-  <!-- Own company card -->
-  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
-      <div>
-        <h3 class="text-lg leading-6 font-medium text-gray-900">
-          {% trans "自社情報" %}
-        </h3>
-        <p class="mt-1 max-w-2xl text-sm text-gray-500">
-          {% trans "あなたの所属する企業の情報" %}
-        </p>
-      </div>
-      {% if user.is_admin %}
-      <div>
-        <a href="{% url 'companies:edit' user_company.pk %}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-          {% trans "編集" %}
-        </a>
-      </div>
-      {% endif %}
-    </div>
-    <div class="border-t border-gray-200">
-      <dl>
-        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-          <dt class="text-sm font-medium text-gray-500">
-            {% trans "企業名" %}
-          </dt>
-          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center">
-            {% if user_company.logo %}
-              <img src="{{ user_company.logo.url }}" alt="{{ user_company.name }}" class="h-8 w-8 mr-3 object-contain">
-            {% endif %}
-            {{ user_company.name }}
-          </dd>
-        </div>
-        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-          <dt class="text-sm font-medium text-gray-500">
-            {% trans "業種" %}
-          </dt>
-          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-            {{ user_company.industry|default:_("未設定") }}
-          </dd>
-        </div>
-        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-          <dt class="text-sm font-medium text-gray-500">
-            {% trans "連絡先" %}
-          </dt>
-          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-            <div>{{ user_company.phone|default:_("電話番号未設定") }}</div>
-            <div>{{ user_company.email|default:_("メールアドレス未設定") }}</div>
-          </dd>
-        </div>
-        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-          <dt class="text-sm font-medium text-gray-500">
-            {% trans "ウェブサイト" %}
-          </dt>
-          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-            {% if user_company.website %}
-              <a href="{{ user_company.website }}" target="_blank" class="text-indigo-600 hover:text-indigo-500">
-                {{ user_company.website }}
-              </a>
-            {% else %}
-              {% trans "未設定" %}
-            {% endif %}
-          </dd>
-        </div>
-        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-          <dt class="text-sm font-medium text-gray-500">
-            {% trans "招待コード" %}
-          </dt>
-          <dd class="mt-1 text-sm font-medium text-indigo-600 sm:mt-0 sm:col-span-2">
-            {{ user_company.invitation_code }}
-          </dd>
-        </div>
-      </dl>
-    </div>
+  <!-- デバッグ情報 -->
+  <div class="bg-yellow-50 p-4 rounded-md">
+    <h3 class="text-lg font-medium text-yellow-800 mb-2">デバッグ情報</h3>
+    <p>ユーザーの企業: {{ user.company }}</p>
+    <p>送信した接続リクエスト数: {{ outgoing|length }}</p>
+    <p>受信した接続リクエスト数: {{ incoming|length }}</p>
+    
+    <h4 class="mt-4 font-medium">送信したリクエスト:</h4>
+    {% for conn in outgoing %}
+      <p>- To: {{ conn.company_to }} (Status: {{ conn.status }})</p>
+    {% endfor %}
+    
+    <h4 class="mt-4 font-medium">受信したリクエスト:</h4>
+    {% for conn in incoming %}
+      <p>- From: {{ conn.company_from }} (Status: {{ conn.status }})</p>
+    {% endfor %}
   </div>
 
-  <!-- Connected companies list -->
+  <!-- 以下、既存のテンプレートコード -->
+  <!-- Incoming connection requests -->
   <div class="bg-white shadow overflow-hidden sm:rounded-lg">
     <div class="px-4 py-5 sm:px-6">
       <h3 class="text-lg leading-6 font-medium text-gray-900">
-        {% trans "連携企業" %}
+        {% trans "受信した接続リクエスト" %}
       </h3>
       <p class="mt-1 max-w-2xl text-sm text-gray-500">
-        {% trans "あなたの企業と連携している企業一覧" %}
+        {% trans "他社からの接続リクエスト" %}
       </p>
     </div>
     <div class="border-t border-gray-200">
-      {% if connected_companies %}
-        <ul class="divide-y divide-gray-200">
-          {% for company in connected_companies %}
-            <li class="px-4 py-4 sm:px-6 hover:bg-gray-50">
-              <a href="{% url 'companies:detail' company.pk %}" class="block">
+      {% if incoming %}
+        <ul class="divide-y divide-gray-200" id="incoming-connections">
+          {% for connection in incoming %}
+            <li class="px-4 py-4 sm:px-6 {% if connection.status == 'pending' %}bg-yellow-50{% endif %}">
+              <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                  {% if company.logo %}
+                  {% if connection.company_from.logo %}
                     <div class="flex-shrink-0 h-10 w-10 mr-4">
-                      <img class="h-10 w-10 object-contain" src="{{ company.logo.url }}" alt="{{ company.name }}">
+                      <img class="h-10 w-10 object-contain" src="{{ connection.company_from.logo.url }}" alt="{{ connection.company_from.name }}">
                     </div>
                   {% endif %}
                   <div>
-                    <p class="text-sm font-medium text-indigo-600">
-                      {{ company.name }}
-                    </p>
-                    <p class="text-sm text-gray-500">
-                      {{ company.industry|default:"" }}
+                    <a href="{% url 'companies:detail' connection.company_from.pk %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                      {{ connection.company_from.name }}
+                    </a>
+                    <p class="text-xs text-gray-500">
+                      {{ connection.created_at|date:"Y/m/d H:i" }}
                     </p>
                   </div>
                 </div>
-              </a>
+                <div>
+                  {% if connection.status == 'pending' %}
+                    <form method="POST" action="{% url 'companies:connection_respond' connection.pk %}" class="inline-block"
+                          hx-post="{% url 'companies:connection_respond' connection.pk %}" 
+                          hx-trigger="click"
+                          hx-swap="none">
+                      {% csrf_token %}
+                      <button type="submit" name="action" value="reject" class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        {% trans "拒否" %}
+                      </button>
+                    </form>
+                    <form method="POST" action="{% url 'companies:connection_respond' connection.pk %}" class="inline-block ml-2"
+                          hx-post="{% url 'companies:connection_respond' connection.pk %}" 
+                          hx-trigger="click"
+                          hx-swap="none">
+                      {% csrf_token %}
+                      <button type="submit" name="action" value="accept" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        {% trans "承認" %}
+                      </button>
+                    </form>
+                  {% elif connection.status == 'accepted' %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                      {% trans "承認済み" %}
+                    </span>
+                  {% elif connection.status == 'rejected' %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800">
+                      {% trans "拒否済み" %}
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
             </li>
           {% endfor %}
         </ul>
       {% else %}
         <div class="px-4 py-5 sm:px-6 text-center text-gray-500">
-          {% trans "連携している企業はありません。" %}
-          {% if user.is_admin or user.is_manager %}
-            <a href="{% url 'companies:connections' %}" class="text-indigo-600 hover:text-indigo-500">
-              {% trans "企業間接続を管理する" %}
-            </a>
-          {% endif %}
+          {% trans "受信した接続リクエストはありません。" %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Outgoing connection requests -->
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
+    <div class="px-4 py-5 sm:px-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">
+        {% trans "送信した接続リクエスト" %}
+      </h3>
+      <p class="mt-1 max-w-2xl text-sm text-gray-500">
+        {% trans "あなたの企業から送信したリクエスト" %}
+      </p>
+    </div>
+    <div class="border-t border-gray-200">
+      {% if outgoing %}
+        <ul class="divide-y divide-gray-200" id="outgoing-connections">
+          {% for connection in outgoing %}
+            <li class="px-4 py-4 sm:px-6 {% if connection.status == 'pending' %}bg-yellow-50{% endif %}">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  {% if connection.company_to.logo %}
+                    <div class="flex-shrink-0 h-10 w-10 mr-4">
+                      <img class="h-10 w-10 object-contain" src="{{ connection.company_to.logo.url }}" alt="{{ connection.company_to.name }}">
+                    </div>
+                  {% endif %}
+                  <div>
+                    <a href="{% url 'companies:detail' connection.company_to.pk %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                      {{ connection.company_to.name }}
+                    </a>
+                    <p class="text-xs text-gray-500">
+                      {{ connection.created_at|date:"Y/m/d H:i" }}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  {% if connection.status == 'pending' %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
+                      {% trans "承認待ち" %}
+                    </span>
+                  {% elif connection.status == 'accepted' %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                      {% trans "承認済み" %}
+                    </span>
+                  {% elif connection.status == 'rejected' %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800">
+                      {% trans "拒否済み" %}
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="px-4 py-5 sm:px-6 text-center text-gray-500">
+          {% trans "送信した接続リクエストはありません。" %}
         </div>
       {% endif %}
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.body.addEventListener('connectionUpdated', function() {
+    // 接続ステータスが更新されたときに画面をリロード
+    window.location.reload();
+  });
+</script>
 {% endblock %}

@@ -15,7 +15,7 @@ urlpatterns = [
     path('join/', views.company_join, name='join'),
     
     # 企業間連携
-    path('connect/', views.company_connect, name='connect'),
+    path('connect/', views.company_connect, name='connection_create'),  
     path('connections/', views.connection_list, name='connections'),
     path('connections/<int:pk>/respond/', views.connection_respond, name='connection_respond'),
 ]

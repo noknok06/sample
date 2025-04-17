@@ -1,0 +1,92 @@
+{% load humanize %}
+{% extends 'data_app/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>商談詳細</h2>
+            <div>
+                <a href="{% url 'negotiation-update' negotiation.id %}" class="btn btn-warning">編集</a>
+                <a href="{% url 'negotiation-list' %}" class="btn btn-secondary">一覧に戻る</a>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>基本情報</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>顧客名:</strong> {{ negotiation.customer_name }}</p>
+                        <p><strong>商談日:</strong> {{ negotiation.negotiation_date }}</p>
+                        <p><strong>担当者:</strong> {{ negotiation.person_in_charge }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>店舗コード:</strong> {{ negotiation.store_code|default:'未設定' }}</p>
+                        <p><strong>店舗名:</strong> {{ negotiation.store_name|default:'未設定' }}</p>
+                        <p><strong>予想売上:</strong> {% if negotiation.expected_sales %}{{ negotiation.expected_sales|floatformat:0|intcomma }} 円{% else %}未設定{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>対象商品・カテゴリ</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <p><strong>対象カテゴリ:</strong> {{ negotiation.target_categories|default:'未設定' }}</p>
+                        
+                        <p><strong>対象商品:</strong></p>
+                        <div class="content-box">
+                            {% if negotiation.target_products %}
+                            <pre>{{ negotiation.target_products }}</pre>
+                            {% else %}
+                            <p>未設定</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>提案内容</h4>
+            </div>
+            <div class="card-body">
+                <pre class="proposal-text">{{ negotiation.proposal_content }}</pre>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>結果メモ</h4>
+            </div>
+            <div class="card-body">
+                <div class="content-box">
+                    {% if negotiation.result_notes %}
+                    {{ negotiation.result_notes|linebreaks }}
+                    {% else %}
+                    <p>未記入</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>履歴情報</h4>
+            </div>
+            <div class="card-body">
+                <p><strong>作成日時:</strong> {{ negotiation.created_at }}</p>
+                <p><strong>更新日時:</strong> {{ negotiation.updated_at }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

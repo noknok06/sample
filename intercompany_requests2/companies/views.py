@@ -275,6 +275,11 @@ def company_connect(request):
     if request.method == 'POST':
         form = CompanyConnectionForm(request.POST, current_company=request.user.company)
         if form.is_valid():
+            # デバッグ: フォームと現在の企業の情報を出力
+            print("\n--- 接続リクエスト作成 ---")
+            print(f"現在の企業: {request.user.company}")
+            print(f"選択された企業: {form.cleaned_data['company_to']}")
+            
             # 連携申請の作成
             connection = CompanyConnection(
                 company_from=request.user.company,
@@ -282,6 +287,14 @@ def company_connect(request):
                 status='pending'
             )
             connection.save()
+            
+            # デバッグ: 保存された接続リクエストの情報を出力
+            print(f"保存された接続リクエスト:")
+            print(f"ID: {connection.id}")
+            print(f"From: {connection.company_from}")
+            print(f"To: {connection.company_to}")
+            print(f"Status: {connection.status}")
+            print("---")
             
             messages.success(
                 request, 
@@ -303,19 +316,56 @@ def company_connect(request):
 @login_required
 def connection_list(request):
     """企業連携一覧表示"""
+    # デバッグ: ログインユーザーと企業の情報
+    print("\n--- デバッグ情報 ---")
+    print(f"ログインユーザー: {request.user}")
+    print(f"ユーザーの企業: {request.user.company}")
+    
     if not request.user.company:
         messages.error(request, _('You need to be associated with a company to view connections.'))
         return redirect('dashboard:home')
     
-    # 送信した連携申請
+    # すべての接続リクエストを詳細に出力
+    all_connections = CompanyConnection.objects.all()
+    print("\n--- すべての接続リクエスト ---")
+    for conn in all_connections:
+        print(f"ID: {conn.id}")
+        print(f"From: {conn.company_from}")
+        print(f"To: {conn.company_to}")
+        print(f"Status: {conn.status}")
+        print("---")
+    
+    # 現在のユーザーの企業に関連する接続リクエストのみを取得
+    user_company = request.user.company
+    
+    # 送信した連携申請: 現在のユーザーの企業が送信元
     outgoing = CompanyConnection.objects.filter(
-        company_from=request.user.company
+        company_from=user_company
     ).select_related('company_to')
     
-    # 受信した連携申請
+    # 受信した連携申請: 現在のユーザーの企業が送信先
     incoming = CompanyConnection.objects.filter(
-        company_to=request.user.company
+        company_to=user_company
     ).select_related('company_from')
+    
+    # 詳細デバッグ情報の出力
+    print("\n--- 送信した接続リクエスト ---")
+    for conn in outgoing:
+        print(f"ID: {conn.id}")
+        print(f"To: {conn.company_to}")
+        print(f"Status: {conn.status}")
+        print("---")
+    
+    print("\n--- 受信した接続リクエスト ---")
+    for conn in incoming:
+        print(f"ID: {conn.id}")
+        print(f"From: {conn.company_from}")
+        print(f"Status: {conn.status}")
+        print("---")
+    
+    # 追加のデバッグ情報
+    print(f"\n送信リクエスト数: {outgoing.count()}")
+    print(f"受信リクエスト数: {incoming.count()}")
     
     context = {
         'outgoing': outgoing,

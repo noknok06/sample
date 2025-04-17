@@ -1,0 +1,63 @@
+{% extends 'data_app/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>商談一覧</h2>
+            <a href="{% url 'negotiation-create' %}" class="btn btn-success">新規商談登録</a>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="GET" class="mb-4">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="顧客名、店舗名、内容などで検索..." value="{{ request.GET.search }}">
+                        <button type="submit" class="btn btn-outline-primary">検索</button>
+                        {% if request.GET.search %}
+                        <a href="{% url 'negotiation-list' %}" class="btn btn-outline-secondary">クリア</a>
+                        {% endif %}
+                    </div>
+                </form>
+                
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>顧客名</th>
+                                <th>店舗名</th>
+                                <th>商談日</th>
+                                <th>担当者</th>
+                                <th>予想売上</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for negotiation in negotiations %}
+                            <tr>
+                                <td>{{ negotiation.customer_name }}</td>
+                                <td>{{ negotiation.store_name|default:'-' }}</td>
+                                <td>{{ negotiation.negotiation_date }}</td>
+                                <td>{{ negotiation.person_in_charge }}</td>
+                                <td>{% if negotiation.expected_sales %}{{ negotiation.expected_sales|floatformat:0|intcomma }} 円{% else %}-{% endif %}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'negotiation-detail' negotiation.id %}" class="btn btn-info">詳細</a>
+                                        <a href="{% url 'negotiation-update' negotiation.id %}" class="btn btn-warning">編集</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">商談記録がありません。</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

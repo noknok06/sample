@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Connect with Company" %} | InterConnect{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <!-- Back button -->
+  <div class="mb-6">
+    <a href="{% url 'companies:connections' %}" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+      <svg class="-ml-1 mr-1 h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+      </svg>
+      {% trans "企業間接続に戻る" %}
+    </a>
+  </div>
+
+  <!-- Connection Request Form -->
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">
+        {% trans "企業間接続リクエスト" %}
+      </h3>
+      <p class="mt-1 max-w-2xl text-sm text-gray-500">
+        {% trans "接続したい企業を選択してください。" %}
+      </p>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+      <form method="POST" class="space-y-6">
+        {% csrf_token %}
+        
+        {{ form|crispy }}
+        
+        <div class="rounded-md bg-blue-50 p-4 mt-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3 flex-1 md:flex md:justify-between">
+              <p class="text-sm text-blue-700">
+                {% trans "接続リクエストに関する重要な注意点:" %}
+                <ul class="list-disc list-inside mt-1">
+                  <li>{% trans "すでに接続済みまたは接続リクエスト中の企業は選択できません。" %}</li>
+                  <li>{% trans "接続には、相手企業の承認が必要です。" %}</li>
+                  <li>{% trans "接続が承認されるまで、リクエストは保留状態となります。" %}</li>
+                </ul>
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex justify-end">
+          <a href="{% url 'companies:connections' %}" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            {% trans "キャンセル" %}
+          </a>
+          <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            {% trans "接続リクエスト送信" %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

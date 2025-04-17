@@ -18,3 +18,5 @@ def handle_user_signup(request, user, **kwargs):
     
     # Here you can add other initialization code
     # For example, sending welcome notifications or emails
+        
+        
