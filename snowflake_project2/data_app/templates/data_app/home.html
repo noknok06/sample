@@ -1,0 +1,48 @@
+{% extends 'data_app/base.html' %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1>商談管理・提案生成システム</h1>
+    <p class="lead">POSデータをリアルタイムで分析し、効果的な商談提案を生成します。</p>
+    <hr class="my-4">
+    <p>以下のメニューから各機能にアクセスできます。</p>
+    <div class="menu-buttons">
+        <a href="{% url 'generate-proposal' %}" class="btn btn-primary">提案生成</a>
+        <a href="{% url 'negotiation-list' %}" class="btn btn-success">商談一覧</a>
+        <a href="{% url 'negotiation-create' %}" class="btn btn-info">商談登録</a>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>データ分析の特徴</h3>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li>POSデータをリアルタイムで分析</li>
+                    <li>カテゴリ別・商品別の売上傾向を把握</li>
+                    <li>店舗別パフォーマンスの比較</li>
+                    <li>効果的な提案内容の自動生成</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>商談管理の特徴</h3>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li>商談記録の一元管理</li>
+                    <li>提案内容と商談結果の紐付け</li>
+                    <li>キーワード検索機能</li>
+                    <li>効果測定の追跡</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

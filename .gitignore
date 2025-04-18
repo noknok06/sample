@@ -17,3 +17,4 @@ intercompany_requests2/reqs/migrations/
 snowflake_project/rsa_key.p8
 snowflake_project/snowflake_project/settings.py
 snowflake_project/data_app/migrations/
+snowflake_project2/data_app/migrations/
